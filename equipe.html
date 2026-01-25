@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Les Randocooleurs</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #27ae60; --dark: #2d3436; --grey: #7f8c8d; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--dark); margin: 0; padding: 20px; }
+        
+        .container { max-width: 1100px; margin: 0 auto; }
+        .nav-back { margin-bottom: 30px; }
+        header { text-align: center; margin-bottom: 20px; }
+        header h1 { font-size: 3.5em; margin: 10px 0; letter-spacing: -2px; color: var(--dark); }
+        
+        nav { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #ddd; padding-bottom: 20px; }
+        nav a { margin: 0 15px; text-decoration: none; color: var(--dark); font-weight: bold; font-size: 0.85em; letter-spacing: 1px; }
+
+        .grid-equipe { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 30px; 
+        }
+
+        .member-card { 
+            background: white; 
+            border-radius: 20px; 
+            padding: 30px; 
+            text-align: center; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+        .member-card:hover { transform: translateY(-10px); }
+        
+        /* Style du Portrait */
+        .member-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 15px auto;
+            border: 3px solid var(--primary);
+            background-color: #eee;
+            display: block;
+        }
+
+        .member-badge {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .member-nom { font-size: 1.4em; margin: 5px 0; color: var(--dark); }
+        .member-desc { color: var(--grey); font-size: 0.85em; line-height: 1.5; min-height: 50px; margin-bottom: 15px; }
+        
+        .member-stats { 
+            padding-top: 15px; 
+            border-top: 1px solid #eee; 
+            font-weight: bold;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+    <header><h1>Randocool</h1></header>
+    <nav>
+        <a href="index.html">ACCUEIL</a>
+        <a href="archives.html">ARCHIVES</a>
+        <a href="equipe.html">L'ÉQUIPE</a>
+        <a href="admin.html" style="color: #e67e22;">+ NOUVELLE MARCHE</a>
+    </nav>
+
+
+        <div id="equipe-container" class="grid-equipe">
+            <p style="text-align: center; grid-column: 1/-1;">Chargement de l'équipe...</p>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function chargerEquipe() {
+            const { data, error } = await supabaseClient
+                .from('randocooleurs')
+                .select('*')
+                .order('id', { ascending: true }); // Tri par ID (du plus ancien au plus récent)
+
+            if (error) {
+                console.error("Erreur:", error);
+                return;
+            }
+
+            afficherEquipe(data);
+        }
+
+       function afficherEquipe(membres) {
+            const container = document.getElementById('equipe-container');
+            container.innerHTML = '';
+
+            const couleursType = {
+                'marcheur': '#27ae60',       // Vert
+                'assistance': '#e84393',     // Rose
+                'ancien membre': '#2980b9',  // Bleu
+                'décédé': '#2d3436',         // Noir
+                'dictateur': '#f39c12'       // Orange
+            };
+
+            membres.forEach(m => {
+                const photo = (m.photo_url && m.photo_url.includes('http')) 
+                              ? m.photo_url 
+                              : 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+
+                const typeNormalise = (m.type || '').toLowerCase();
+                const couleurBadge = couleursType[typeNormalise] || '#b2bec3';
+
+                // --- CONDITION POUR LE COMPTEUR ---
+                // On prépare le HTML du compteur uniquement si c'est un marcheur
+                let statsHtml = '';
+                if (typeNormalise === 'marcheur') {
+                    statsHtml = `
+                        <div class="member-stats">
+                            <span style="font-size: 1.2em; color: ${couleurBadge};">👣 ${m.km || 0} km</span>
+                            <div style="font-size: 0.7em; color: var(--grey); text-transform: uppercase;">au compteur</div>
+                        </div>`;
+                }
+
+                container.innerHTML += `
+                    <div class="member-card" style="border-top: 5px solid ${couleurBadge};">
+                        <div style="width: 100px; height: 100px; margin: 0 auto 15px auto; border-radius: 50%; overflow: hidden; border: 3px solid ${couleurBadge};">
+                            <img src="${photo}" 
+                                 alt="${m.nom}" 
+                                 style="width: 100%; height: 100%; object-fit: cover; filter: ${typeNormalise === 'décédé' ? 'grayscale(100%)' : 'none'};"
+                                 onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+                        </div>
+                        
+                        <div class="member-badge" style="background-color: ${couleurBadge};">
+                            ${m.type || 'Membre'}
+                        </div>
+
+                        <h2 class="member-nom">${m.nom}</h2>
+
+                        <div style="font-style: italic; color: ${couleurBadge}; font-size: 0.9em; margin-bottom: 10px;">
+                        </div>
+
+                        <p class="member-desc">${m.description || ''}</p>
+                        
+                        ${statsHtml} </div>
+                `;
+            });
+        }
+        chargerEquipe();
+    </script>
+</body>
+</html>

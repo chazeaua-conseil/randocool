@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier une rando</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Utilisez le même style que pour admin.html */
+        :root { --primary: #27ae60; --dark: #2d3436; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html">← Annuler</a>
+        <h1>Modifier la rando</h1>
+        <form id="edit-form">
+            <input type="hidden" id="rando-id">
+            <div class="form-group"><label>Titre</label><input type="text" id="titre" required></div>
+            <div class="form-group"><label>Date</label><input type="date" id="date" required></div>
+            <div class="form-group"><label>Difficulté</label>
+                <select id="difficulte">
+                    <option value="Facile">Facile</option><option value="Moyen">Moyen</option>
+                    <option value="Difficile">Difficile</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Distance (km)</label><input type="number" id="distance" step="any">
+            <div class="form-group"><label>Dénivelé (m)</label><input type="number" id="denivele" step="any">
+            <div class="form-group"><label>Description</label><textarea id="description"></textarea></div>
+            <div class="form-group"><label>URL Image</label><input type="url" id="image_url"></div>
+            <div class="form-group"><label>URL Album</label><input type="url" id="album_url"></div>
+            <button type="submit">Enregistrer les modifications</button>
+        </form>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // 1. Récupérer l'ID dans l'URL
+        const params = new URLSearchParams(window.location.search);
+        const randoId = params.get('id');
+
+        async function chargerDonnees() {
+            if (!randoId) return alert("Pas d'ID spécifié");
+            
+            const { data, error } = await supabaseClient
+                .from('randos')
+                .select('*')
+                .eq('id', randoId)
+                .single();
+
+            if (data) {
+                document.getElementById('rando-id').value = data.id;
+                document.getElementById('titre').value = data.titre;
+                document.getElementById('date').value = data.date;
+                document.getElementById('difficulte').value = data.difficulte;
+                document.getElementById('distance').value = data.distance || '';
+                document.getElementById('denivele').value = data.denivele || '';
+                document.getElementById('description').value = data.description;
+                document.getElementById('image_url').value = data.image_url;
+                document.getElementById('album_url').value = data.album_url;
+            }
+        }
+
+        document.getElementById('edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const updates = {
+                titre: document.getElementById('titre').value,
+                date: document.getElementById('date').value,
+                difficulte: document.getElementById('difficulte').value,
+                distance: document.getElementById('distance').value,
+                denivele: document.getElementById('denivele').value,
+                description: document.getElementById('description').value,
+                image_url: document.getElementById('image_url').value,
+                album_url: document.getElementById('album_url').value
+            };
+
+            const { error } = await supabaseClient
+                .from('randos')
+                .update(updates)
+                .eq('id', randoId);
+
+            if (error) alert("Erreur : " + error.message);
+            else {
+                alert("Modifié !");
+                window.location.href = 'index.html';
+            }
+        });
+
+        chargerDonnees();
+    </script>
+</body>
+</html>
