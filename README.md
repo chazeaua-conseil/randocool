@@ -1,0 +1,19 @@
+Liste des pages :
+- index.html
+  - Affichage de la dernière rando en principal
+  - Affichage des 5 marches précédentes à droite
+  - Affichage des actus à gauche > Contenu de la table actus
+  - Accès aux albums photos Google de chaque randonnée
+  - Possibilité de modifier chaque randonnée
+  - Fonctionnalité de recherche
+- archives.html
+  - Affichage de toutes les marches de la table rando
+  - Accès aux albums photos Google de chaque randonnée
+  - Possibilité de modifier chaque randonnée
+  - Fonctionnalité de recherche
+- equipe.html
+  - Affichage de la liste des Randocooleurs
+- modifier.html
+  - Formulaire de modification d'une randonnée
+- admin.html
+  - Formulaire de création d'une nouvelle randonnée
