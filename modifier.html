@@ -23,12 +23,7 @@
             <input type="hidden" id="rando-id">
             <div class="form-group"><label>Titre</label><input type="text" id="titre" required></div>
             <div class="form-group"><label>Date</label><input type="date" id="date" required></div>
-            <div class="form-group"><label>Difficulté</label>
-                <select id="difficulte">
-                    <option value="Facile">Facile</option><option value="Moyen">Moyen</option>
-                    <option value="Difficile">Difficile</option>
-                </select>
-            </div>
+             <div class="form-group"><label>Participants</label><input type="number" id="nombre_participants">
             <div class="form-group"><label>Distance (km)</label><input type="number" id="distance" step="any">
             <div class="form-group"><label>Dénivelé (m)</label><input type="number" id="denivele" step="any">
             <div class="form-group"><label>Description</label><textarea id="description"></textarea></div>
@@ -60,7 +55,7 @@
                 document.getElementById('rando-id').value = data.id;
                 document.getElementById('titre').value = data.titre;
                 document.getElementById('date').value = data.date;
-                document.getElementById('difficulte').value = data.difficulte;
+                document.getElementById('nombre_participants').value = data.nombre_participants;
                 document.getElementById('distance').value = data.distance || '';
                 document.getElementById('denivele').value = data.denivele || '';
                 document.getElementById('description').value = data.description;
@@ -74,7 +69,7 @@
             const updates = {
                 titre: document.getElementById('titre').value,
                 date: document.getElementById('date').value,
-                difficulte: document.getElementById('difficulte').value,
+                nombre_participants: document.getElementById('nombre_participants').value,
                 distance: document.getElementById('distance').value,
                 denivele: document.getElementById('denivele').value,
                 description: document.getElementById('description').value,

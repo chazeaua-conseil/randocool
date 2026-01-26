@@ -9,44 +9,30 @@
         :root { --primary: #27ae60; --dark: #2d3436; --grey: #636e72; --bg: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--dark); margin: 0; padding: 20px; }
         .container { max-width: 1300px; margin: 0 auto; }
-        
         header { text-align: center; margin-bottom: 20px; }
-        header h1 { font-size: 3.5em; margin: 10px 0; letter-spacing: -2px; color: var(--dark); }
-        
+        header h1 { font-size: 3.5em; margin: 10px 0; letter-spacing: -2px; }
         nav { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #ddd; padding-bottom: 20px; }
-        nav a { margin: 0 15px; text-decoration: none; color: var(--dark); font-weight: bold; font-size: 0.85em; letter-spacing: 1px; }
-
-        /* Badges avec icônes */
+        nav a { margin: 0 15px; text-decoration: none; color: var(--dark); font-weight: bold; font-size: 0.85em; }
+        
         .badge { padding: 4px 10px; color: white; border-radius: 4px; font-size: 0.75em; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; margin-right: 5px; }
-        .badge-diff { background: var(--primary); }
+        .badge-part { background: #9b59b6; } /* Violet pour les participants */
         .badge-dist { background: #3498db; }
         .badge-deniv { background: #e67e22; }
 
         .main-grid { display: grid; grid-template-columns: 300px 1fr 320px; gap: 30px; }
-        
-        /* GAUCHE : Actus */
-        .col-actus h2 { font-size: 1.1em; text-transform: uppercase; border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
         .actu-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ddd; }
-        .actu-date { font-size: 0.75em; color: var(--primary); font-weight: bold; text-transform: uppercase; }
-
-        /* CENTRE : La Une */
         .card-une { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .img-une { width: 100%; height: 450px; object-fit: cover; }
         .content-une { padding: 30px; }
-
-        /* DROITE : Feed avec photos */
-        .col-feed h2 { font-size: 1.1em; text-transform: uppercase; color: var(--grey); }
-        .feed-card { background: white; border-radius: 10px; border: 1px solid #ddd; overflow: hidden; margin-bottom: 20px; }
-        .feed-img { width: 100%; height: 120px; object-fit: cover; }
+        .feed-card { background: white; border-radius: 12px; border: 1px solid #ddd; overflow: hidden; margin-bottom: 20px; }
+        .feed-img { width: 100%; height: 130px; object-fit: cover; }
         .feed-content { padding: 15px; }
-        
-        input#search { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 30px; font-size: 1em; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
 
+        input#search { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 30px; font-size: 1em; }
         @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-
 <div class="container">
     <header><h1>Randocool</h1></header>
     <nav>
@@ -55,69 +41,33 @@
         <a href="equipe.html">L'ÉQUIPE</a>
         <a href="admin.html" style="color: #e67e22;">+ NOUVELLE MARCHE</a>
     </nav>
-
-    <input type="text" id="search" placeholder="Rechercher une destination, un membre ou une date..." oninput="rechercher()">
-
+    <input type="text" id="search" placeholder="Rechercher..." oninput="rechercher()">
     <div id="zone-randos" class="main-grid">
         <div class="col-actus" id="col-actus"><h2>Autres Actus</h2></div>
         <div id="content-principal"></div>
-        <div class="col-feed" id="col-feed"><h2>Dernières marches</h2></div>
+        <div class="col-feed" id="col-feed"><h2>Dernières marches</h2><div id="feed-area"></div></div>
     </div>
 </div>
-
 <script>
 			const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
 			const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
 			const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
     let toutesLesRandos = [];
 
-    async function initialiser() {
-        chargerActus();
-        chargerRandos();
-    }
+    async function initialiser() { chargerActus(); chargerRandos(); }
 
-async function chargerActus() {
-    // On récupère les données de la table 'actus'
-    const { data, error } = await supabaseClient
-        .from('actus')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-    const container = document.getElementById('col-actus');
-    
-    if (error) {
-        console.error("Erreur actus:", error);
-        return;
-    }
-
-    if (data && data.length > 0) {
-        container.innerHTML = `<h2>Autres Actus</h2>` + data.map(a => {
-            // Formatage de la date (attribut 'created_at' ou 'date' selon votre table)
-            const dateActu = new Date(a.date).toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            });
-
-            return `
+    async function chargerActus() {
+        const { data } = await supabaseClient.from('actus').select('*').order('date', { ascending: false });
+        if (data) {
+            document.getElementById('col-actus').innerHTML = `<h2>Autres Actus</h2>` + data.map(a => `
                 <div class="actu-card">
-                    <div class="actu-date">📅 ${dateActu}</div>
-                    <p style="font-size:0.85em; color:var(--grey); line-height:1.5; margin-bottom:12px;">
-                        ${a.description || a.contenu || ''}
-                    </p>
-                    ${a.album_url || a.lien ? `
-                        <a href="${a.album_url || a.lien}" target="_blank" 
-                           style="font-size:0.8em; color:var(--primary); text-decoration:none; font-weight:bold; display:flex; align-items:center; gap:5px;">
-                           📸 Voir l'album photos
-                        </a>
-                    ` : ''}
-                </div>`;
-        }).join('');
-    } else {
-        container.innerHTML = `<h2>Autres Actus</h2><p style="font-size:0.8em; color:grey;">Aucune actualité récente.</p>`;
+                    <div style="font-size:0.75em; color:var(--primary); font-weight:bold;">📅 ${new Date(a.date).toLocaleDateString('fr-FR')}</div>
+                    <h3 style="margin:5px 0; font-size:1em;">${a.description}</h3>
+                    <p style="font-size:0.85em; color:var(--grey); line-height:1.4;">${a.description || a.contenu || ''}</p>
+                    ${a.album_url ? `<a href="${a.album_url}" target="_blank" style="font-size:0.8em; color:var(--primary); font-weight:bold; text-decoration:none;">📸 Album</a>` : ''}
+                </div>`).join('');
+        }
     }
-}
 
     async function chargerRandos() {
         const { data } = await supabaseClient.from('randos').select('*').order('date', { ascending: false });
@@ -126,73 +76,63 @@ async function chargerActus() {
 
     function afficherRandos(data, estRecherche = false) {
         const principal = document.getElementById('content-principal');
-        const feed = document.getElementById('col-feed');
-        
+        const feedArea = document.getElementById('feed-area');
         if (estRecherche) {
             document.getElementById('zone-randos').style.display = 'block';
-            document.getElementById('zone-randos').innerHTML = `<h2>Résultats (${data.length})</h2><div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:25px;">` + 
-            data.map(item => genererCarteResultat(item)).join('') + `</div>`;
+            document.getElementById('zone-randos').innerHTML = `<h2>Résultats</h2><div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:25px;">` + data.map(item => genererCarteResultat(item)).join('') + `</div>`;
         } else {
             document.getElementById('zone-randos').style.display = 'grid';
             const une = data[0];
             const reste = data.slice(1, 6);
-
-            // BLOC CENTRAL : LA UNE
             principal.innerHTML = `
                 <div class="card-une">
-                    <img class="img-une" src="${une.image_url || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1000'}">
+                    <img class="img-une" src="${une.image_url || ''}">
                     <div class="content-une">
                         <div style="margin-bottom:15px">
-                            <span class="badge badge-diff">⛰️ ${une.difficulte}</span>
+                            <span class="badge badge-part">👥 ${une.nombre_participants || 0} participants</span>
                             ${une.distance ? `<span class="badge badge-dist">📏 ${une.distance} km</span>` : ''}
-                            ${une.denivele ? `<span class="badge badge-deniv">⬆️ ${une.denivele} m</span>` : ''}
+                            ${une.denivele ? `<span class="badge badge-deniv">🧗 ${une.denivele} m</span>` : ''}
                         </div>
-                        <h2 style="margin:0; font-size:2.2em;">${une.titre}</h2>
-                        <p style="color:var(--grey); margin:10px 0;">Sortie du ${new Date(une.date).toLocaleDateString('fr-FR')} 
-                            <a href="modifier.html?id=${une.id}" style="margin-left:15px; text-decoration:none; font-size:0.8em; color:var(--primary);">⚙️ ÉDITER</a>
-                        </p>
-                        <p style="line-height:1.7;">${une.description}</p>
+                        <h2>${une.titre}</h2>
+                        <p>Le ${new Date(une.date).toLocaleDateString('fr-FR')} <a href="modifier.html?id=${une.id}" style="text-decoration:none; color:var(--primary); font-weight:bold;">⚙️ ÉDITER</a></p>
+                        <p>${une.description}</p>
                         ${une.album_url ? `<a href="${une.album_url}" target="_blank" style="color:var(--primary); font-weight:bold; text-decoration:none; border-bottom:2px solid">📷 VOIR LES PHOTOS →</a>` : ''}
                     </div>
                 </div>`;
-
-            // BLOC DROIT : 5 DERNIÈRES MARCHES
-// Localisez cette partie dans votre fonction afficherRandos (la partie concernant le bloc droit)
-feed.innerHTML = `<h2>Dernières marches</h2>` + reste.map(item => `
-    <div class="feed-card">
-        <img src="${item.image_url || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400'}" class="feed-img">
-        <div class="feed-content">
-            <div style="margin-bottom:8px; display: flex; flex-wrap: wrap; gap: 4px;">
-                <span class="badge badge-diff" style="font-size:0.6em; padding:2px 6px;">⛰️ ${item.difficulte}</span>
-                ${item.distance ? `<span class="badge badge-dist" style="font-size:0.6em; padding:2px 6px;">📏 ${item.distance}k</span>` : ''}
-                ${item.denivele ? `<span class="badge badge-deniv" style="font-size:0.6em; padding:2px 6px;">⬆️ ${item.denivele}m</span>` : ''}
-            </div>
-            <h3 style="margin:0; font-size:1em;">${item.titre}</h3>
-            <p style="font-size:0.75em; color:var(--grey); margin:5px 0;">${new Date(item.date).toLocaleDateString('fr-FR')}</p>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                <a href="modifier.html?id=${item.id}" style="font-size:0.7em; color:var(--grey); text-decoration:none;">⚙️ Modifier</a>
-                ${item.album_url ? `<a href="${item.album_url}" target="_blank" style="font-size:0.75em; color:var(--primary); font-weight:bold; text-decoration:none;">Album 📷</a>` : ''}
-            </div>
-        </div>
-    </div>`).join('') + `<a href="archives.html" style="display:block; text-align:center; font-size:0.8em; color:var(--grey); text-decoration:none;">Voir l'historique complet</a>`;
+            feedArea.innerHTML = reste.map(item => `
+                <div class="feed-card">
+                    <img src="${item.image_url}" class="feed-img">
+                    <div class="feed-content">
+                        <div style="margin-bottom:8px; display: flex; flex-wrap: wrap; gap: 4px;">
+                            <span class="badge badge-part" style="font-size:0.6em; padding:2px 5px;">👥 ${item.nombre_participants || 0}</span>
+                            ${item.distance ? `<span class="badge badge-dist" style="font-size:0.6em; padding:2px 5px;">📏 ${item.distance}k</span>` : ''}
+                            ${item.denivele ? `<span class="badge badge-deniv" style="font-size:0.6em; padding:2px 5px;">🧗 ${item.denivele}m</span>` : ''}
+                        </div>
+                        <h3 style="margin:0; font-size:1em;">${item.titre}</h3>
+                        <div style="display:flex; justify-content:space-between; margin-top:8px;">
+                            <a href="modifier.html?id=${item.id}" style="font-size:0.75em; text-decoration:none; color:var(--grey);">⚙️ Modifier</a>
+                            ${item.album_url ? `<a href="${item.album_url}" target="_blank" style="font-size:0.75em; color:var(--primary); font-weight:bold; text-decoration:none;">Album 📷</a>` : ''}
+                        </div>
+                    </div>
+                </div>`).join('') + `<a href="archives.html" style="display:block; text-align:center; font-size:0.8em; color:var(--grey); text-decoration:none; margin-top:10px;">Voir l'historique complet</a>`;
         }
     }
 
-// Remplacez uniquement la fonction genererCarteResultat dans votre fichier index.html
-function genererCarteResultat(item) {
+    function genererCarteResultat(item) {
     return `
     <div class="feed-card">
         <img src="${item.image_url || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400'}" class="feed-img" style="height:150px">
         <div class="feed-content">
-            <div style="margin-bottom:8px">
-                <span class="badge badge-diff" style="font-size:0.6em;">⛰️ ${item.difficulte}</span>
-                ${item.distance ? `<span class="badge badge-dist" style="font-size:0.65em;">📏 ${item.distance}k</span>` : ''}
+            <div style="margin-bottom:10px; display: flex; flex-wrap: wrap; gap: 4px;">
+                <span class="badge badge-part" style="font-size:0.6em;">👥 ${item.nombre_participants || 0}</span>
+                ${item.distance ? `<span class="badge badge-dist" style="font-size:0.6em;">📏 ${item.distance}k</span>` : ''}
+                ${item.denivele ? `<span class="badge badge-deniv" style="font-size:0.6em;">🧗 ${item.denivele}m</span>` : ''}
             </div>
             <h3 style="margin:0">${item.titre}</h3>
             <p style="font-size:0.8em; color:var(--grey); margin:10px 0;">
-                ${item.description ? item.description.substring(0, 150) + '...' : ''}
+                ${item.description ? item.description.substring(0, 100) + '...' : ''}
             </p>
-            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; pt:10px; margin-top:10px; padding-top:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; padding-top:10px;">
                 <a href="modifier.html?id=${item.id}" style="color:var(--grey); font-size:0.8em; text-decoration:none;">⚙️ Modifier</a>
                 ${item.album_url ? `<a href="${item.album_url}" target="_blank" style="color:var(--primary); font-size:0.8em; font-weight:bold; text-decoration:none;">Album 📷</a>` : ''}
             </div>
@@ -203,10 +143,9 @@ function genererCarteResultat(item) {
     function rechercher() {
         const query = document.getElementById('search').value.toLowerCase();
         if (query === "") { initialiser(); return; }
-        const filtres = toutesLesRandos.filter(r => r.titre.toLowerCase().includes(query) || (r.description && r.description.toLowerCase().includes(query)));
+        const filtres = toutesLesRandos.filter(r => r.titre.toLowerCase().includes(query));
         afficherRandos(filtres, true);
     }
-
     initialiser();
 </script>
 </body>

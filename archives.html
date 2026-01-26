@@ -2,119 +2,90 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archives - Randocool</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #27ae60; --dark: #2d3436; --grey: #636e72; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--dark); margin: 0; padding: 20px; }
+        .container { max-width: 1300px; margin: 0 auto; }
         header { text-align: center; margin-bottom: 20px; }
-        header h1 { font-size: 3.5em; margin: 10px 0; letter-spacing: -2px; color: var(--dark); }
-        
+        header h1 { font-size: 3.5em; margin: 10px 0; letter-spacing: -2px; }
         nav { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #ddd; padding-bottom: 20px; }
-        nav a { margin: 0 15px; text-decoration: none; color: var(--dark); font-weight: bold; font-size: 0.85em; letter-spacing: 1px; }
-
-        input#search { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 30px; font-size: 1em; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-
-        .badge { padding: 3px 8px; color: white; border-radius: 4px; font-size: 0.7em; font-weight: bold; margin-right: 5px; display: inline-flex; align-items: center; gap: 3px; }
-        .badge-diff { background: var(--primary); }
+        nav a { margin: 0 15px; text-decoration: none; color: var(--dark); font-weight: bold; font-size: 0.85em; }
+        input#search { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 30px; }
+        .badge { padding: 3px 8px; color: white; border-radius: 4px; font-size: 0.7em; font-weight: bold; margin-right: 5px; }
+        .badge-part { background: #9b59b6; }
         .badge-dist { background: #3498db; }
         .badge-deniv { background: #e67e22; }
-
-        .annee-header { font-size: 2.2em; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin: 50px 0 25px 0; color: var(--dark); }
+        .annee-header { font-size: 2.2em; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin: 50px 0 25px 0; }
         .grid-archives { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; }
-        .card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #ddd; display: flex; flex-direction: column; transition: transform 0.2s; }
-        .card:hover { transform: translateY(-5px); }
-        .card-img { width: 100%; height: 200px; object-fit: cover; }
-        .card-body { padding: 20px; flex-grow: 1; }
-        
-        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
+        .card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #ddd; }
+        .card-body { padding: 20px; }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <header><h1>Randocool</h1></header>
+    <header><h1>Archives</h1></header>
     <nav>
         <a href="index.html">ACCUEIL</a>
         <a href="archives.html">ARCHIVES</a>
         <a href="equipe.html">L'ÉQUIPE</a>
         <a href="admin.html" style="color: #e67e22;">+ NOUVELLE MARCHE</a>
     </nav>
-
-
-    <input type="text" id="search" placeholder="🔍 Rechercher dans les archives..." oninput="filtrerArchives()">
-
+    <input type="text" id="search" placeholder="Rechercher dans les archives..." oninput="filtrerArchives()">
     <div id="archives-container"></div>
 </div>
-
 <script>
-        const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+			const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
+			const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
+			const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let toutesLesRandos = [];
 
-    async function chargerArchives() {
+    async function charger() {
         const { data } = await supabaseClient.from('randos').select('*').order('date', { ascending: false });
-        if (data) {
-            toutesLesRandos = data;
-            afficherGroupes(data);
-        }
+        if (data) { toutesLesRandos = data; afficherGroupes(data); }
     }
 
     function afficherGroupes(liste) {
-        const container = document.getElementById('archives-container');
-        container.innerHTML = '';
-        
-        const parAnnee = {};
-        liste.forEach(r => {
-            const annee = new Date(r.date).getFullYear();
-            if (!parAnnee[annee]) parAnnee[annee] = [];
-            parAnnee[annee].push(r);
-        });
+    const container = document.getElementById('archives-container');
+    container.innerHTML = '';
+    const parAnnee = {};
+    
+    liste.forEach(r => {
+        const annee = new Date(r.date).getFullYear();
+        if (!parAnnee[annee]) parAnnee[annee] = [];
+        parAnnee[annee].push(r);
+    });
 
-        Object.keys(parAnnee).sort((a, b) => b - a).forEach(annee => {
-            container.innerHTML += `<div class="annee-header">${annee}</div><div class="grid-archives">` + 
-                parAnnee[annee].map(item => genererCarteArchive(item)).join('') + `</div>`;
-        });
-    }
-
-    function genererCarteArchive(item) {
-        const apercu = item.description ? item.description.substring(0, 500) + (item.description.length > 500 ? '...' : '') : '';
-        return `
-        <div class="card">
-            <img class="card-img" src="${item.image_url || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500'}">
-            <div class="card-body">
-                <div style="margin-bottom:12px">
-                    <span class="badge badge-diff">⛰️ ${item.difficulte}</span>
-                    ${item.distance ? `<span class="badge badge-dist">📏 ${item.distance}km</span>` : ''}
-                    ${item.denivele ? `<span class="badge badge-deniv">🧗 ${item.denivele}m</span>` : ''}
+    Object.keys(parAnnee).sort((a, b) => b - a).forEach(annee => {
+        container.innerHTML += `<div class="annee-header">${annee}</div><div class="grid-archives">` + 
+            parAnnee[annee].map(item => `
+            <div class="card">
+                <img src="${item.image_url || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500'}" style="width:100%; height:180px; object-fit:cover;">
+                <div class="card-body">
+                    <div style="margin-bottom:12px; display: flex; flex-wrap: wrap; gap: 4px;">
+                        <span class="badge badge-part">👥 ${item.nombre_participants || 0}</span>
+                        ${item.distance ? `<span class="badge badge-dist">📏 ${item.distance}km</span>` : ''}
+                        ${item.denivele ? `<span class="badge badge-deniv">🧗 ${item.denivele}m</span>` : ''}
+                    </div>
+                    <h3 style="margin:0 0 10px 0">${item.titre}</h3>
+                    <p style="font-size:0.85em; color:var(--grey); line-height:1.5;">
+                        ${item.description ? item.description.substring(0, 500) : ''}...
+                    </p>
+                    <div style="margin-top:15px; padding-top:10px; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                        <a href="modifier.html?id=${item.id}" style="text-decoration:none; color:var(--grey); font-size:0.85em;">⚙️ Modifier</a>
+                        ${item.album_url ? `<a href="${item.album_url}" target="_blank" style="color:var(--primary); font-weight:bold; text-decoration:none; font-size:0.85em;">Album 📷</a>` : ''}
+                    </div>
                 </div>
-                <h3 style="margin:0 0 10px 0">${item.titre}</h3>
-                <p style="font-size:0.85em; color:var(--grey); line-height:1.5;">${apercu}</p>
-                <p style="font-size:0.8em; color:var(--grey); margin-top:10px; font-weight:bold;">Le ${new Date(item.date).toLocaleDateString('fr-FR')}</p>
-                
-                <div class="card-footer">
-                    <a href="modifier.html?id=${item.id}" style="text-decoration:none; color:var(--grey); font-size:0.85em;">⚙️ Modifier</a>
-                    ${item.album_url ? `<a href="${item.album_url}" target="_blank" style="color:var(--primary); font-weight:bold; text-decoration:none; font-size:0.85em;">Album 📷</a>` : ''}
-                </div>
-            </div>
-        </div>`;
-    }
+            </div>`).join('') + `</div>`;
+    });
+}
 
     function filtrerArchives() {
         const query = document.getElementById('search').value.toLowerCase();
-        const filtre = toutesLesRandos.filter(r => 
-            r.titre.toLowerCase().includes(query) || 
-            (r.description && r.description.toLowerCase().includes(query))
-        );
-        afficherGroupes(filtre);
+        afficherGroupes(toutesLesRandos.filter(r => r.titre.toLowerCase().includes(query)));
     }
-
-    chargerArchives();
+    charger();
 </script>
 </body>
 </html>
