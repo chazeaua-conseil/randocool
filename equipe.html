@@ -3,75 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Les Randocooleurs</title>
+    <title>L'Équipe - Randocool</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #27ae60; --dark: #2d3436; --grey: #7f8c8d; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--dark); margin: 0; padding: 20px; }
-        
-        .container { max-width: 1100px; margin: 0 auto; }
-        .nav-back { margin-bottom: 30px; }
-        header { text-align: center; margin-bottom: 20px; }
-        header h1 { font-size: 3.5em; margin: 10px 0; letter-spacing: -2px; color: var(--dark); }
-        
-        nav { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #ddd; padding-bottom: 20px; }
-        nav a { margin: 0 15px; text-decoration: none; color: var(--dark); font-weight: bold; font-size: 0.85em; letter-spacing: 1px; }
-
-        .grid-equipe { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-            gap: 30px; 
+        :root { 
+            --primary: #27ae60; 
+            --dark: #2d3436; 
+            --grey: #636e72; 
+            --bg: #f4f7f6; /* Couleur exacte de l'ancienne version */
         }
+        
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--dark); margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        
+        header { text-align: center; margin-bottom: 10px; }
+        header h1 { font-size: 2.8rem; font-weight: 800; margin: 10px 0; color: var(--dark); }
+        .subtitle { text-align: center; color: var(--grey); margin-bottom: 25px; font-size: 1.1rem; }
+        
+        nav { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #dcdde1; padding-bottom: 20px; }
+        nav a { margin: 0 15px; text-decoration: none; color: var(--dark); font-weight: 700; font-size: 0.9rem; letter-spacing: 0.5px; }
 
+        .admin-actions { text-align: right; margin-bottom: 20px; }
+        .btn-add { background: var(--primary); color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 0.9em; box-shadow: 0 4px 12px rgba(39, 174, 96, 0.2); }
+
+        /* Légende des badges */
+        .legend-box {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            font-size: 0.85rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--grey); }
+        .dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 1px #e2e8f0; }
+
+        /* Grille des membres */
+        .equipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+        
         .member-card { 
             background: white; 
-            border-radius: 20px; 
-            padding: 30px; 
+            border-radius: 24px; 
+            padding: 30px 20px; 
+            border: 2px solid #eee; 
             text-align: center; 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            transition: transform 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.04);
             position: relative;
+            transition: transform 0.3s ease;
         }
-        .member-card:hover { transform: translateY(-10px); }
+        .member-card:hover { transform: translateY(-5px); }
         
-        /* Style du Portrait */
-        .member-photo {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin: 0 auto 15px auto;
-            border: 3px solid var(--primary);
-            background-color: #eee;
-            display: block;
+        /* Badge Médaille */
+        .medal-badge {
+            position: absolute; top: 18px; right: 18px; width: 30px; height: 30px;
+            border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.15); z-index: 5;
         }
+        .medal-gold-shine { animation: shine-effect 3s infinite linear; background-size: 200% auto; }
+        @keyframes shine-effect { to { background-position: 200% center; } }
 
-        .member-badge {
-            background: var(--primary);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75em;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 10px;
+        .photo-container {
+            width: 120px; height: 120px; margin: 0 auto 20px auto;
+            border-radius: 50%; overflow: hidden; border: 4px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
         }
-
-        .member-nom { font-size: 1.4em; margin: 5px 0; color: var(--dark); }
-        .member-desc { color: var(--grey); font-size: 0.85em; line-height: 1.5; min-height: 50px; margin-bottom: 15px; }
+        .member-photo { width: 100%; height: 100%; object-fit: cover; }
         
-        .member-stats { 
-            padding-top: 15px; 
-            border-top: 1px solid #eee; 
-            font-weight: bold;
-            color: var(--primary);
-        }
+        .member-info h3 { margin: 0 0 5px 0; font-size: 1.35rem; font-weight: 800; color: var(--dark); }
+        .role-tag { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: block; }
+
+        .km-box { background: #f1f5f9; padding: 8px 15px; border-radius: 12px; margin-bottom: 15px; display: inline-block; }
+        .km-value { font-weight: 800; color: var(--dark); font-size: 1rem; }
+        
+        .member-desc { color: var(--grey); font-size: 0.85rem; line-height: 1.5; margin-bottom: 20px; min-height: 45px; padding: 0 10px; }
+        .btn-edit { display: inline-block; color: var(--grey); text-decoration: none; font-size: 0.75rem; border: 1px solid #e2e8f0; padding: 7px 18px; border-radius: 10px; background: #fafafa; font-weight: 700; transition: background 0.2s; }
+        .btn-edit:hover { background: #f1f5f9; color: var(--dark); }
     </style>
 </head>
 <body>
 
-    <div class="container">
-    <header><h1>L'équipe</h1></header>
+<div class="container">
+    <header><h1>L'équipe Randocool</h1></header>
+    <p class="subtitle">Chaque pas compte, chaque kilomètre raconte une histoire.</p>
+    
     <nav>
         <a href="index.html">ACCUEIL</a>
         <a href="archives.html">ARCHIVES</a>
@@ -79,87 +98,87 @@
         <a href="admin.html" style="color: #e67e22;">+ NOUVELLE MARCHE</a>
     </nav>
 
-
-        <div id="equipe-container" class="grid-equipe">
-            <p style="text-align: center; grid-column: 1/-1;">Chargement de l'équipe...</p>
-        </div>
+    <div class="admin-actions">
+        <a href="admin_equipe.html" class="btn-add">➕ Ajouter un membre</a>
     </div>
 
-    <script>
+    <div class="legend-box">
+        <div class="legend-item"><div class="dot" style="background:#f1c40f"></div> 500+ km</div>
+        <div class="legend-item"><div class="dot" style="background:#e74c3c"></div> 1000+ km</div>
+        <div class="legend-item"><div class="dot" style="background:#27ae60"></div> 2000+ km</div>
+        <div class="legend-item"><div class="dot" style="background:#3498db"></div> 3000+ km</div>
+        <div class="legend-item"><div class="dot" style="background:#000000"></div> 4000+ km</div>
+        <div class="legend-item"><div class="dot" style="background:linear-gradient(135deg, #D4AF37, #FFF9E3, #D4AF37)"></div> 5000+ km</div>
+    </div>
+
+    <div class="equipe-grid" id="equipe-container">
+        </div>
+</div>
+
+<script>
         const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-async function chargerEquipe() {
-            const { data, error } = await supabaseClient
-                .from('randocooleurs')
-                .select('*')
-                .order('id', { ascending: true }); // Tri par ID (du plus ancien au plus récent)
+    const COULEURS_ROLES = {
+        "Marcheur": "#27ae60",
+        "Décédé": "#9b59b6",
+        "Dictateur": "#e67e22",
+        "Ancien membre": "#34495e",
+        "Assistance": "#e74c3c",
+        "default": "#94a3b8"
+    };
 
-            if (error) {
-                console.error("Erreur:", error);
-                return;
-            }
+    function obtenirStyleBadge(km) {
+        if (km >= 5000) return { couleur: 'linear-gradient(135deg, #D4AF37 0%, #FFF9E3 50%, #D4AF37 100%)', classe: 'medal-gold-shine' };
+        if (km >= 4000) return { couleur: '#000000', classe: '' };
+        if (km >= 3000) return { couleur: '#3498db', classe: '' };
+        if (km >= 2000) return { couleur: '#27ae60', classe: '' };
+        if (km >= 1000) return { couleur: '#e74c3c', classe: '' };
+        if (km >= 500)  return { couleur: '#f1c40f', classe: '' };
+        return null; 
+    }
 
-            afficherEquipe(data);
-        }
+    async function chargerEquipe() {
+        const container = document.getElementById('equipe-container');
+        const { data, error } = await supabaseClient.from('randocooleurs').select('*').order('id');
 
-       function afficherEquipe(membres) {
-            const container = document.getElementById('equipe-container');
-            container.innerHTML = '';
+        if (error) { container.innerHTML = `<p>Erreur : ${error.message}</p>`; return; }
 
-            const couleursType = {
-                'marcheur': '#27ae60',       // Vert
-                'assistance': '#e84393',     // Rose
-                'ancien membre': '#2980b9',  // Bleu
-                'décédé': '#2d3436',         // Noir
-                'dictateur': '#f39c12'       // Orange
-            };
+        container.innerHTML = data.map(member => {
+            const kmValue = parseFloat(member.km) || 0;
+            const couleurRole = COULEURS_ROLES[member.type] || COULEURS_ROLES["default"];
+            const badge = obtenirStyleBadge(kmValue);
+            const photoDefaut = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
 
-            membres.forEach(m => {
-                const photo = (m.photo_url && m.photo_url.includes('http')) 
-                              ? m.photo_url 
-                              : 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-
-                const typeNormalise = (m.type || '').toLowerCase();
-                const couleurBadge = couleursType[typeNormalise] || '#b2bec3';
-
-                // --- CONDITION POUR LE COMPTEUR ---
-                // On prépare le HTML du compteur uniquement si c'est un marcheur
-                let statsHtml = '';
-                if (typeNormalise === 'marcheur') {
-                    statsHtml = `
-                        <div class="member-stats">
-                            <span style="font-size: 1.2em; color: ${couleurBadge};">👣 ${m.km || 0} km</span>
-                            <div style="font-size: 0.7em; color: var(--grey); text-transform: uppercase;">au compteur</div>
-                        </div>`;
-                }
-
-                container.innerHTML += `
-                    <div class="member-card" style="border-top: 5px solid ${couleurBadge};">
-                        <div style="width: 100px; height: 100px; margin: 0 auto 15px auto; border-radius: 50%; overflow: hidden; border: 3px solid ${couleurBadge};">
-                            <img src="${photo}" 
-                                 alt="${m.nom}" 
-                                 style="width: 100%; height: 100%; object-fit: cover; filter: ${typeNormalise === 'décédé' ? 'grayscale(100%)' : 'none'};"
-                                 onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            return `
+            <div class="member-card" style="border-color: ${couleurRole}55;">
+                ${badge ? `<div class="medal-badge ${badge.classe}" style="background: ${badge.couleur};"></div>` : ''}
+                
+                <div class="photo-container">
+                    <img src="${member.photo_url || photoDefaut}" class="member-photo" onerror="this.src='${photoDefaut}'">
+                </div>
+                
+                <div class="member-info">
+                    <span class="role-tag" style="color: ${couleurRole};">${member.type}</span>
+                    <h3>${member.nom}</h3>
+                    
+                    ${kmValue > 0 ? `
+                        <div class="km-box">
+                            <span class="km-value">${kmValue.toFixed(0)} KM</span>
                         </div>
-                        
-                        <div class="member-badge" style="background-color: ${couleurBadge};">
-                            ${m.type || 'Membre'}
-                        </div>
+                    ` : ''}
+                    
+                    <p class="member-desc">${member.description || ''}</p>
+                    
+                    <a href="modifier_equipe.html?id=${member.id}" class="btn-edit">⚙️ MODIFIER</a>
+                </div>
+            </div>`;
+        }).join('');
+    }
 
-                        <h2 class="member-nom">${m.nom}</h2>
+    chargerEquipe();
+</script>
 
-                        <div style="font-style: italic; color: ${couleurBadge}; font-size: 0.9em; margin-bottom: 10px;">
-                        </div>
-
-                        <p class="member-desc">${m.description || ''}</p>
-                        
-                        ${statsHtml} </div>
-                `;
-            });
-        }
-        chargerEquipe();
-    </script>
 </body>
 </html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter une Actualité - Randocool</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #27ae60; --dark: #2d3436; --bg: #f4f7f6; --blue: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        
+        h1 { color: var(--dark); border-bottom: 2px solid var(--blue); padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--dark); }
+        
+        input, textarea { 
+            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; 
+            box-sizing: border-box; font-family: inherit; font-size: 1em; 
+        }
+
+        .btn-save { 
+            width: 100%; padding: 15px; background: var(--blue); color: white; 
+            border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1em; 
+        }
+        .btn-save:hover { background: #2980b9; }
+        
+        .back-link { text-decoration: none; color: var(--grey); font-size: 0.9em; display: inline-block; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="index.html" class="back-link">← Retour au Journal</a>
+    <h1>📢 Nouvelle Actualité</h1>
+
+    <form id="actu-form">
+        <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="date" required>
+        </div>
+
+        <div class="form-group">
+            <label>Image (URL)</label>
+            <input type="url" id="photo_url" placeholder="https://images.unsplash.com/...">
+        </div>
+
+        <div class="form-group">
+            <label>Lien "En savoir plus"</label>
+            <input type="url" id="lien" placeholder="https://...">
+        </div>
+
+        <div class="form-group">
+            <label>Message / Description</label>
+            <textarea id="description" rows="6" placeholder="Que se passe-t-il ?" required></textarea>
+        </div>
+
+        <button type="submit" class="btn-save">Publier sur le site</button>
+    </form>
+</div>
+
+<script>
+    // Configuration Supabase
+			const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
+			const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
+			const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Initialiser la date du jour
+    document.getElementById('date').valueAsDate = new Date();
+
+    document.getElementById('actu-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const nouvelleActu = {
+            date: document.getElementById('date').value,
+            description: document.getElementById('description').value,
+            lien: document.getElementById('lien').value,
+            photo_url: document.getElementById('photo_url').value
+        };
+
+        const { data, error } = await supabaseClient
+            .from('actus')
+            .insert([nouvelleActu]);
+
+        if (error) {
+            alert("Erreur lors de la sauvegarde : " + error.message);
+            console.error(error);
+        } else {
+            // Redirection simple vers l'accueil
+            window.location.href = "index.html";
+        }
+    });
+</script>
+
+</body>
+</html>
