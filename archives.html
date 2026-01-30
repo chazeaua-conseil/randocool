@@ -69,6 +69,7 @@
                         ${item.denivele ? `<span class="badge badge-deniv">📈 ${item.denivele}m</span>` : ''}
                     </div>
                     <h3 style="margin:0 0 10px 0">${item.titre}</h3>
+					<p>Le ${Date(card.date).toLocaleDateString('fr-FR')}</p>
                     <p style="font-size:0.85em; color:var(--grey); line-height:1.5;">
                         ${item.description ? item.description.substring(0, 500) : ''}...
                     </p>
@@ -88,3 +89,4 @@
     charger();
 </script>
 </body>
+
