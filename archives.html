@@ -12,15 +12,18 @@
         header h1 { font-size: 3.5em; margin: 10px 0; letter-spacing: -2px; }
         nav { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #ddd; padding-bottom: 20px; }
         nav a { margin: 0 15px; text-decoration: none; color: var(--dark); font-weight: bold; font-size: 0.85em; }
-        input#search { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 30px; }
+        input#search { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 30px; box-sizing: border-box; }
         .badge { padding: 3px 8px; color: white; border-radius: 4px; font-size: 0.7em; font-weight: bold; margin-right: 5px; }
         .badge-part { background: #9b59b6; }
         .badge-dist { background: #3498db; }
         .badge-deniv { background: #e67e22; }
-        .annee-header { font-size: 2.2em; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin: 50px 0 25px 0; }
+        .badge-date { background: var(--grey); }
+        .annee-header { font-size: 2.2em; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin: 50px 0 25px 0; grid-column: 1 / -1; }
         .grid-archives { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; }
-        .card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #ddd; }
-        .card-body { padding: 20px; }
+        .card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #ddd; display: flex; flex-direction: column; }
+        .card-body { padding: 20px; flex-grow: 1; }
+        #sentinel { height: 50px; margin-top: 20px; }
+        #loader-text { text-align: center; color: var(--grey); font-style: italic; padding: 20px; }
     </style>
 </head>
 <body>
@@ -32,59 +35,143 @@
         <a href="equipe.html">L'ÉQUIPE</a>
         <a href="admin.html" style="color: #e67e22;">+ NOUVELLE MARCHE</a>
     </nav>
-    <input type="text" id="search" placeholder="Rechercher dans les archives..." oninput="filtrerArchives()">
+    
+    <input type="text" id="search" placeholder="Rechercher par titre (recherche globale)..." oninput="gererRecherche()">
+    
     <div id="archives-container"></div>
+    
+    <div id="sentinel"></div>
+    <div id="loader-text">Chargement des randos...</div>
 </div>
+
 <script>
-			const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
-			const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
-			const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    let toutesLesRandos = [];
+const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function charger() {
-        const { data } = await supabaseClient.from('randos').select('*').order('date', { ascending: false });
-        if (data) { toutesLesRandos = data; afficherGroupes(data); }
+    let page = 0;
+    const itemsPerPage = 6;
+    let toutesLesRandos = []; // Stocke les randos du scroll infini
+    let chargementEnCours = false;
+    let finDesDonnees = false;
+    let timerRecherche; // Pour éviter de harceler la BDD à chaque lettre tapée
+
+    // 1. Initialisation de l'observateur pour le scroll
+    const observer = new IntersectionObserver(entries => {
+        const rechercheVide = document.getElementById('search').value.trim() === "";
+        if (entries[0].isIntersecting && !chargementEnCours && !finDesDonnees && rechercheVide) {
+            chargerPlus();
+        }
+    }, { threshold: 0.1 });
+
+    observer.observe(document.getElementById('sentinel'));
+
+    // 2. Fonction de chargement par palier (Mode normal)
+    async function chargerPlus() {
+        chargementEnCours = true;
+        document.getElementById('loader-text').innerText = "Chargement des sentiers...";
+
+        const from = page * itemsPerPage;
+        const to = from + itemsPerPage - 1;
+
+        const { data, error } = await supabaseClient
+            .from('randos')
+            .select('*')
+            .order('date', { ascending: false })
+            .range(from, to);
+
+        if (data && data.length > 0) {
+            toutesLesRandos = [...toutesLesRandos, ...data];
+            afficherArchives(toutesLesRandos);
+            page++;
+            if (data.length < itemsPerPage) finDesDonnees = true;
+        } else {
+            finDesDonnees = true;
+            document.getElementById('loader-text').innerText = "Fin de l'historique.";
+        }
+        chargementEnCours = false;
     }
 
-    function afficherGroupes(liste) {
-    const container = document.getElementById('archives-container');
-    container.innerHTML = '';
-    const parAnnee = {};
+    // 3. Fonction de recherche globale (Mode recherche)
+    async function gererRecherche() {
+        clearTimeout(timerRecherche);
+        const query = document.getElementById('search').value.trim();
 
-    liste.forEach(r => {
-        const annee = new Date(r.date).getFullYear();
-        if (!parAnnee[annee]) parAnnee[annee] = [];
-        parAnnee[annee].push(r);
-    });
+        // Si le champ est vide, on réaffiche les données chargées par le scroll
+        if (query === "") {
+            document.getElementById('sentinel').style.display = 'block';
+            document.getElementById('loader-text').style.display = 'block';
+            afficherArchives(toutesLesRandos);
+            return;
+        }
 
-    Object.keys(parAnnee).sort((a, b) => b - a).forEach(annee => {
-        container.innerHTML += `<div class="annee-header">${annee}</div><div class="grid-archives">` + 
-            parAnnee[annee].map(item => `
-            <div class="card">
-                <img src="${item.image_url || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500'}" style="width:100%; height:180px; object-fit:cover;">
-                <div class="card-body">
-                    <div style="margin-bottom:12px; display: flex; flex-wrap: wrap; gap: 4px;">
-                        <span class="badge badge-part">👥 ${item.nombre_participants || 0}</span>
-                        ${item.distance ? `<span class="badge badge-dist">📏 ${item.distance}km</span>` : ''}
-                        ${item.denivele ? `<span class="badge badge-deniv">📈 ${item.denivele}m</span>` : ''}
-                    </div>
-                    <h3 style="margin:0 0 10px 0">${item.titre}</h3>
-                    <p style="font-size:0.85em; color:var(--grey); line-height:1.5;">
-                        ${item.description ? item.description.substring(0, 500) : ''}...
-                    </p>
-                    <div style="margin-top:15px; padding-top:10px; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                        <a href="modifier.html?id=${item.id}" style="text-decoration:none; color:var(--grey); font-size:0.85em;">⚙️ Modifier</a>
-                        ${item.album_url ? `<a href="${item.album_url}" target="_blank" style="color:var(--primary); font-weight:bold; text-decoration:none; font-size:0.85em;">Album 📷</a>` : ''}
-                    </div>
-                </div>
-            </div>`).join('') + `</div>`;
-    });
-}
+        // Sinon, on cherche dans TOUTE la base (on attend 300ms que l'utilisateur finisse de taper)
+        timerRecherche = setTimeout(async () => {
+            document.getElementById('sentinel').style.display = 'none'; // On coupe le scroll infini
+            document.getElementById('loader-text').innerText = "Recherche en cours...";
+            
+            const { data, error } = await supabaseClient
+                .from('randos')
+                .select('*')
+                .ilike('titre', `%${query}%`) // Recherche insensible à la casse
+                .order('date', { ascending: false });
 
-    function filtrerArchives() {
-        const query = document.getElementById('search').value.toLowerCase();
-        afficherGroupes(toutesLesRandos.filter(r => r.titre.toLowerCase().includes(query)));
+            if (data) {
+                afficherArchives(data);
+                document.getElementById('loader-text').innerText = `${data.length} résultat(s) trouvé(s).`;
+            }
+        }, 300);
     }
-    charger();
+
+    // 4. Fonction d'affichage commune
+    function afficherArchives(liste) {
+        const container = document.getElementById('archives-container');
+        container.innerHTML = '';
+        
+        const parAnnee = {};
+        liste.forEach(r => {
+            const annee = new Date(r.date).getFullYear();
+            if (!parAnnee[annee]) parAnnee[annee] = [];
+            parAnnee[annee].push(r);
+        });
+
+        Object.keys(parAnnee).sort((a, b) => b - a).forEach(annee => {
+            const sectionAnnee = document.createElement('div');
+            sectionAnnee.innerHTML = `<div class="annee-header">${annee}</div>`;
+            const grid = document.createElement('div');
+            grid.className = 'grid-archives';
+
+            grid.innerHTML = parAnnee[annee].map(item => {
+                const dateLegible = new Date(item.date).toLocaleDateString('fr-FR', {
+                    day: 'numeric', month: 'long', year: 'numeric'
+                });
+
+                return `
+                <div class="card">
+                    <img src="${item.image_url || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500'}" style="width:100%; height:180px; object-fit:cover;">
+                    <div class="card-body">
+                        <div style="margin-bottom:12px; display: flex; flex-wrap: wrap; gap: 4px;">
+                            <span class="badge badge-date">📅 ${dateLegible}</span>
+                            <span class="badge badge-part">👥 ${item.nombre_participants || 0}</span>
+                            ${item.distance ? `<span class="badge badge-dist">📏 ${item.distance}km</span>` : ''}
+                            ${item.denivele ? `<span class="badge badge-deniv">📈 ${item.denivele}m</span>` : ''}
+                        </div>
+                        <h3 style="margin:0 0 10px 0">${item.titre}</h3>
+                        <p style="font-size:0.85em; color:var(--grey); line-height:1.5;">
+                            ${item.description ? item.description.substring(0, 150) : ''}...
+                        </p>
+                        <div style="margin-top:auto; padding-top:10px; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                            <a href="modifier.html?id=${item.id}" style="text-decoration:none; color:var(--grey); font-size:0.85em;">⚙️ Modifier</a>
+                            ${item.album_url ? `<a href="${item.album_url}" target="_blank" style="color:var(--primary); font-weight:bold; text-decoration:none; font-size:0.85em;">Album 📷</a>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            
+            container.appendChild(sectionAnnee);
+            container.appendChild(grid);
+        });
+    }
 </script>
 </body>
+</html>
