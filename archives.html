@@ -2,176 +2,236 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Archives - Randocool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archives | Randocool</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #27ae60; --dark: #2d3436; --grey: #636e72; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--dark); margin: 0; padding: 20px; }
-        .container { max-width: 1300px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 20px; }
-        header h1 { font-size: 3.5em; margin: 10px 0; letter-spacing: -2px; }
-        nav { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #ddd; padding-bottom: 20px; }
-        nav a { margin: 0 15px; text-decoration: none; color: var(--dark); font-weight: bold; font-size: 0.85em; }
-        input#search { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 30px; box-sizing: border-box; }
-        .badge { padding: 3px 8px; color: white; border-radius: 4px; font-size: 0.7em; font-weight: bold; margin-right: 5px; }
-        .badge-part { background: #9b59b6; }
-        .badge-dist { background: #3498db; }
-        .badge-deniv { background: #e67e22; }
-        .badge-date { background: var(--grey); }
-        .annee-header { font-size: 2.2em; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin: 50px 0 25px 0; grid-column: 1 / -1; }
-        .grid-archives { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; }
-        .card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #ddd; display: flex; flex-direction: column; }
-        .card-body { padding: 20px; flex-grow: 1; }
-        #sentinel { height: 50px; margin-top: 20px; }
-        #loader-text { text-align: center; color: var(--grey); font-style: italic; padding: 20px; }
+        :root {
+            --primary: #27ae60; --dark: #0f172a; --grey: #64748b;
+            --bg-light: #f1f5f9; --bg-alt: #e5e9f0; --white: #ffffff;
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-light); margin: 0; padding-top: 140px; }
+
+        /* HEADER IDENTIQUE INDEX */
+        header {
+            position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px); z-index: 2000; border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .nav-container {
+            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+            padding: 0 40px; height: 80px; width: 100%; box-sizing: border-box;
+        }
+        .nav-links { display: flex; gap: 25px; }
+        .nav-links a { text-decoration: none; color: var(--dark); font-weight: 700; font-size: 0.85rem; transition: 0.3s; }
+        .nav-links a:hover { color: var(--primary); }
+        .logo { font-weight: 800; font-size: 1.8rem; letter-spacing: -1.5px; text-decoration: none; color: var(--dark); text-align: center; }
+        .nav-actions { display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
+        .search-box input { padding: 10px 15px 10px 35px; border-radius: 20px; border: 1px solid #e2e8f0; background: #f1f5f9; width: 180px; outline: none; font-family: inherit; }
+        .btn-add { background: var(--dark); color: white !important; padding: 8px 18px; border-radius: 12px; font-size: 0.75rem !important; font-weight: 700; text-decoration: none; transition: 0.3s; }
+        .btn-add:hover { background: var(--primary); }
+
+        /* FILTRES PAR ANNÉES */
+        .filter-strip {
+            position: fixed; top: 80px; left: 0; right: 0; height: 60px; background: white;
+            border-bottom: 1px solid #eee; display: flex; align-items: center; padding: 0 40px; z-index: 1900;
+            overflow-x: auto; gap: 10px;
+        }
+        .year-btn { padding: 6px 18px; border-radius: 20px; background: #f1f5f9; color: var(--grey); font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; white-space: nowrap; transition: 0.2s; }
+        .year-btn.active { background: var(--primary); color: white; }
+
+        /* SECTIONS ET GRILLE */
+        .year-section { padding: 80px 0; }
+        .year-section:nth-child(even) { background-color: var(--bg-alt); }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 40px; }
+        .year-title { font-size: 3rem; font-weight: 800; margin-bottom: 40px; letter-spacing: -2px; }
+        .grid-archives { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 40px; }
+
+        /* CARDS */
+        .card { background: var(--white); border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.03); transition: 0.4s; }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 30px 60px rgba(0,0,0,0.1); }
+        .card-header { padding: 25px; }
+        .card-title { font-size: 1.3rem; font-weight: 800; margin: 0; line-height: 1.2; }
+        .card-media { position: relative; height: 230px; margin: 0 15px; border-radius: 20px; overflow: hidden; }
+        .card-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* BADGE DATE VALIDÉ */
+        .date-badge {
+            position: absolute; top: 15px; left: 15px; background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(8px); padding: 8px 14px; border-radius: 12px; font-weight: 800;
+            display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .date-badge span { font-size: 1.1rem; color: var(--primary); }
+        .date-badge small { font-size: 0.65rem; color: var(--grey); text-transform: uppercase; }
+
+        .card-body { padding: 25px; flex-grow: 1; }
+        .stats-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .stat { font-size: 0.75rem; font-weight: 700; color: var(--grey); background: #f8fafc; padding: 5px 12px; border-radius: 8px; }
+        .card-footer { padding: 20px 25px; border-top: 1px solid #f8fafc; display: flex; justify-content: space-between; align-items: center; }
+        
+        #loader-text { text-align: center; padding: 50px; color: var(--grey); font-weight: 600; }
     </style>
 </head>
 <body>
-<div class="container">
-    <header><h1>Archives</h1></header>
-    <nav>
-        <a href="index.html">ACCUEIL</a>
-        <a href="archives.html">ARCHIVES</a>
-        <a href="equipe.html">L'ÉQUIPE</a>
-        <a href="admin.html" style="color: #e67e22;">+ NOUVELLE MARCHE</a>
-    </nav>
-    
-    <input type="text" id="search" placeholder="Rechercher par titre (recherche globale)..." oninput="gererRecherche()">
-    
-    <div id="archives-container"></div>
-    
-    <div id="sentinel"></div>
-    <div id="loader-text">Chargement des randos...</div>
+
+<header>
+    <div class="nav-container">
+        <div class="nav-links">
+            <a href="index.html">ACCUEIL</a>
+            <a href="archives.html" style="color: var(--primary);">ARCHIVES</a>
+            <a href="equipe.html">L'ÉQUIPE</a>
+        </div>
+        <a href="index.html" class="logo">Randocool</a>
+        <div class="nav-actions">
+            <div class="search-box">
+                <input type="text" id="search" placeholder="Rechercher..." oninput="gererRecherche()">
+            </div>
+            <a href="admin.html" class="btn-add">+ NOUVELLE RANDO</a>
+        </div>
+    </div>
+</header>
+
+<div class="filter-strip" id="years-nav">
+    <button class="year-btn active" onclick="changerFiltre('all', this)">TOUTES LES ANNÉES</button>
 </div>
 
+<main id="archives-wrapper"></main>
+<div id="sentinel"></div>
+<div id="loader-text">Chargement...</div>
+
 <script>
-const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
+    const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let page = 0;
     const itemsPerPage = 6;
-    let toutesLesRandos = []; // Stocke les randos du scroll infini
-    let chargementEnCours = false;
     let finDesDonnees = false;
-    let timerRecherche; // Pour éviter de harceler la BDD à chaque lettre tapée
+    let isFetching = false; // Verrou anti-doublons
+    let filtreActuel = 'all';
+    let rechercheActuelle = '';
+    let timerRecherche;
 
-    // 1. Initialisation de l'observateur pour le scroll
-    const observer = new IntersectionObserver(entries => {
-        const rechercheVide = document.getElementById('search').value.trim() === "";
-        if (entries[0].isIntersecting && !chargementEnCours && !finDesDonnees && rechercheVide) {
-            chargerPlus();
+    async function init() {
+        const { data } = await supabaseClient.rpc('get_unique_years');
+        if (data) {
+            const nav = document.getElementById('years-nav');
+            data.forEach(res => {
+                const btn = document.createElement('button');
+                btn.className = 'year-btn';
+                btn.innerText = res.year;
+                btn.onclick = (e) => changerFiltre(res.year, e.target);
+                nav.appendChild(btn);
+            });
         }
-    }, { threshold: 0.1 });
+        chargerPlus(true);
+    }
 
-    observer.observe(document.getElementById('sentinel'));
+    async function chargerPlus(reset = false) {
+        if (isFetching) return;
+        if (reset) {
+            page = 0;
+            finDesDonnees = false;
+            document.getElementById('archives-wrapper').innerHTML = '';
+        }
+        if (finDesDonnees) return;
 
-    // 2. Fonction de chargement par palier (Mode normal)
-    async function chargerPlus() {
-        chargementEnCours = true;
-        document.getElementById('loader-text').innerText = "Chargement des sentiers...";
+        isFetching = true;
+        document.getElementById('loader-text').innerText = "Recherche en cours...";
 
-        const from = page * itemsPerPage;
-        const to = from + itemsPerPage - 1;
+        let query = supabaseClient.from('randos').select('*');
+        if (rechercheActuelle) query = query.ilike('titre', `%${rechercheActuelle}%`);
+        if (filtreActuel !== 'all') {
+            query = query.gte('date', `${filtreActuel}-01-01`).lte('date', `${filtreActuel}-12-31`);
+        }
 
-        const { data, error } = await supabaseClient
-            .from('randos')
-            .select('*')
+        const { data, error } = await query
             .order('date', { ascending: false })
-            .range(from, to);
+            .range(page * itemsPerPage, (page + 1) * itemsPerPage - 1);
 
         if (data && data.length > 0) {
-            toutesLesRandos = [...toutesLesRandos, ...data];
-            afficherArchives(toutesLesRandos);
+            ajouterAuDom(data);
             page++;
             if (data.length < itemsPerPage) finDesDonnees = true;
         } else {
             finDesDonnees = true;
-            document.getElementById('loader-text').innerText = "Fin de l'historique.";
+            if (page === 0) document.getElementById('archives-wrapper').innerHTML = '<p style="text-align:center; padding:50px;">Aucun sentier ne correspond.</p>';
         }
-        chargementEnCours = false;
-    }
-
-    // 3. Fonction de recherche globale (Mode recherche)
-    async function gererRecherche() {
-        clearTimeout(timerRecherche);
-        const query = document.getElementById('search').value.trim();
-
-        // Si le champ est vide, on réaffiche les données chargées par le scroll
-        if (query === "") {
-            document.getElementById('sentinel').style.display = 'block';
-            document.getElementById('loader-text').style.display = 'block';
-            afficherArchives(toutesLesRandos);
-            return;
-        }
-
-        // Sinon, on cherche dans TOUTE la base (on attend 300ms que l'utilisateur finisse de taper)
-        timerRecherche = setTimeout(async () => {
-            document.getElementById('sentinel').style.display = 'none'; // On coupe le scroll infini
-            document.getElementById('loader-text').innerText = "Recherche en cours...";
-            
-            const { data, error } = await supabaseClient
-                .from('randos')
-                .select('*')
-                .ilike('titre', `%${query}%`) // Recherche insensible à la casse
-                .order('date', { ascending: false });
-
-            if (data) {
-                afficherArchives(data);
-                document.getElementById('loader-text').innerText = `${data.length} résultat(s) trouvé(s).`;
-            }
-        }, 300);
-    }
-
-    // 4. Fonction d'affichage commune
-    function afficherArchives(liste) {
-        const container = document.getElementById('archives-container');
-        container.innerHTML = '';
         
-        const parAnnee = {};
+        document.getElementById('loader-text').innerText = finDesDonnees ? "Fin de l'histoire." : "Faites défiler pour en voir plus";
+        isFetching = false;
+    }
+
+    function changerFiltre(annee, btn) {
+        if (isFetching) return;
+        document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filtreActuel = annee;
+        chargerPlus(true);
+    }
+
+    function gererRecherche() {
+        clearTimeout(timerRecherche);
+        rechercheActuelle = document.getElementById('search').value.trim();
+        timerRecherche = setTimeout(() => chargerPlus(true), 400);
+    }
+
+    function ajouterAuDom(liste) {
+        const wrapper = document.getElementById('archives-wrapper');
         liste.forEach(r => {
             const annee = new Date(r.date).getFullYear();
-            if (!parAnnee[annee]) parAnnee[annee] = [];
-            parAnnee[annee].push(r);
-        });
-
-        Object.keys(parAnnee).sort((a, b) => b - a).forEach(annee => {
-            const sectionAnnee = document.createElement('div');
-            sectionAnnee.innerHTML = `<div class="annee-header">${annee}</div>`;
-            const grid = document.createElement('div');
-            grid.className = 'grid-archives';
-
-            grid.innerHTML = parAnnee[annee].map(item => {
-                const dateLegible = new Date(item.date).toLocaleDateString('fr-FR', {
-                    day: 'numeric', month: 'long', year: 'numeric'
-                });
-
-                return `
-                <div class="card">
-                    <img src="${item.image_url || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500'}" style="width:100%; height:180px; object-fit:cover;">
-                    <div class="card-body">
-                        <div style="margin-bottom:12px; display: flex; flex-wrap: wrap; gap: 4px;">
-                            <span class="badge badge-date">📅 ${dateLegible}</span>
-                            <span class="badge badge-part">👥 ${item.nombre_participants || 0}</span>
-                            ${item.distance ? `<span class="badge badge-dist">📏 ${item.distance}km</span>` : ''}
-                            ${item.denivele ? `<span class="badge badge-deniv">📈 ${item.denivele}m</span>` : ''}
-                        </div>
-                        <h3 style="margin:0 0 10px 0">${item.titre}</h3>
-                        <p style="font-size:0.85em; color:var(--grey); line-height:1.5;">
-                            ${item.description ? item.description.substring(0, 150) : ''}...
-                        </p>
-                        <div style="margin-top:auto; padding-top:10px; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                            <a href="modifier.html?id=${item.id}" style="text-decoration:none; color:var(--grey); font-size:0.85em;">⚙️ Modifier</a>
-                            ${item.album_url ? `<a href="${item.album_url}" target="_blank" style="color:var(--primary); font-weight:bold; text-decoration:none; font-size:0.85em;">Album 📷</a>` : ''}
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
+            let section = document.getElementById(`section-${annee}`);
             
-            container.appendChild(sectionAnnee);
-            container.appendChild(grid);
+            if (!section) {
+                section = document.createElement('section');
+                section.id = `section-${annee}`;
+                section.className = 'year-section';
+                section.innerHTML = `<div class="container"><div class="year-title">${annee}</div><div class="grid-archives" id="grid-${annee}"></div></div>`;
+                
+                // Insertion ordonnée
+                const sections = Array.from(wrapper.children);
+                const pos = sections.findIndex(s => parseInt(s.id.split('-')[1]) < annee);
+                if (pos === -1) wrapper.appendChild(section);
+                else wrapper.insertBefore(section, sections[pos]);
+            }
+            
+            const grid = document.getElementById(`grid-${annee}`);
+            // Vérification anti-doublon locale au cas où
+            if (!document.getElementById(`card-${r.id}`)) {
+                grid.innerHTML += renderCard(r);
+            }
         });
     }
+
+    function renderCard(r) {
+        const d = new Date(r.date);
+        return `
+            <div class="card" id="card-${r.id}">
+                <div class="card-header"><h3 class="card-title">${r.titre}</h3></div>
+                <div class="card-media">
+                    <img class="card-img" src="${r.image_url || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600'}">
+                    <div class="date-badge"><span>${d.getDate()}</span><small>${d.toLocaleDateString('fr-FR', {month:'short'}).replace('.','')}</small></div>
+                </div>
+                <div class="card-body">
+                    <div class="stats-row">
+                        <span class="stat">📏 ${r.distance}km</span><span class="stat">📈 ${r.denivele}m</span>
+                    </div>
+                    <p style="font-size:0.9rem; color:var(--grey); line-height:1.5;">${r.description ? r.description.substring(0, 95) + '...' : ''}</p>
+                </div>
+                <div class="card-footer">
+                    <a href="modifier.html?id=${r.id}" style="color:#cbd5e1; text-decoration:none; font-size:0.8rem; font-weight:700;">ÉDITER</a>
+                    ${r.album_url ? `<a href="${r.album_url}" target="_blank" style="text-decoration:none; font-size:0.8rem; font-weight:700; color:var(--primary);">ALBUM</a>` : ''}
+                </div>
+            </div>`;
+    }
+
+    const observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && !finDesDonnees && !isFetching) chargerPlus();
+    }, { rootMargin: '200px' });
+    observer.observe(document.getElementById('sentinel'));
+
+    init();
 </script>
 </body>
 </html>

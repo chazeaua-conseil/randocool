@@ -2,69 +2,135 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Ajouter un membre - Randocool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter un membre | Randocool</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #27ae60; --dark: #2d3436; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-        input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        :root {
+            --primary: #27ae60; --dark: #0f172a; --grey: #64748b;
+            --bg-light: #f1f5f9; --white: #ffffff; --border: #e2e8f0;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg-light); 
+            margin: 0; 
+            display: flex; align-items: center; justify-content: center; min-height: 100vh;
+        }
+
+        .container { 
+            width: 90%; max-width: 600px; 
+            background: var(--white); 
+            padding: 40px; 
+            border-radius: 30px; 
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.05);
+        }
+
+        .back-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            text-decoration: none; color: var(--grey); font-size: 0.8rem; font-weight: 700;
+            margin-bottom: 25px; transition: 0.2s;
+        }
+        .back-link:hover { color: var(--dark); transform: translateX(-5px); }
+
+        h1 { font-size: 2rem; font-weight: 800; letter-spacing: -1.5px; margin: 0 0 30px 0; color: var(--dark); }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .full-width { grid-column: span 2; }
+
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-size: 0.7rem; font-weight: 800; color: var(--grey); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        input, textarea {
+            padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border);
+            font-family: inherit; font-size: 0.95rem; background: #f8fafc; transition: 0.3s;
+        }
+        input:focus, textarea:focus { 
+            outline: none; border-color: var(--primary); background: white; 
+            box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.1); 
+        }
+
+        .btn-submit {
+            grid-column: span 2; margin-top: 10px;
+            padding: 16px; background: var(--dark); color: white;
+            border: none; border-radius: 15px; font-weight: 800; font-size: 0.9rem;
+            cursor: pointer; transition: 0.3s;
+        }
+        .btn-submit:hover:not(:disabled) { background: var(--primary); transform: translateY(-2px); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
     </style>
 </head>
 <body>
-    <div class="container">
-        <a href="equipe.html" style="text-decoration: none; color: var(--primary);">← Retour à l'équipe</a>
-        <h1>➕ Nouveau Membre</h1>
-        <form id="equipe-form">
-            <div class="form-group">
-                <label>Nom Complet</label>
-                <input type="text" id="nom" placeholder="Ex: Jean Dupont" required>
-            </div>
-            <div class="form-group">
-                <label>Rôle / Spécialité</label>
-                <input type="text" id="role" placeholder="Ex: Guide de haute montagne" required>
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea id="description" style="height: 100px;" rows = "15" placeholder="Quelques mots sur cette personne..."></textarea>
-            </div>
-			<div class="form-group">
-    <label>Kilomètres parcourus (km)</label>
-    <input type="number" id="km" step="any" placeholder="Ex: 125.5" rows = "1">
+
+<div class="container">
+    <a href="equipe.html" class="back-link">← RETOUR À L'ÉQUIPE</a>
+    
+    <h1>➕ Nouveau membre</h1>
+    
+    <form id="equipe-form" class="form-grid">
+        <div class="form-group full-width">
+            <label>Nom Complet</label>
+            <input type="text" id="nom" placeholder="Ex: Jean Dupont" required>
+        </div>
+
+        <div class="form-group">
+            <label>Rôle / Type</label>
+            <input type="text" id="type" placeholder="Ex: Marcheur" required>
+        </div>
+
+        <div class="form-group">
+            <label>Kilomètres (km)</label>
+            <input type="number" id="km" step="any" placeholder="0">
+        </div>
+
+        <div class="form-group full-width">
+            <label>Description du profil</label>
+            <textarea id="description" rows="5" placeholder="Quelques mots sur cette personne..."></textarea>
+        </div>
+
+        <div class="form-group full-width">
+            <label>URL de la Photo</label>
+            <input type="url" id="photo_url" placeholder="https://images.unsplash.com/...">
+        </div>
+
+        <button type="submit" id="btn" class="btn-submit">ENREGISTRER LE MEMBRE</button>
+    </form>
 </div>
-            <div class="form-group">
-                <label>URL Photo</label>
-                <input type="url" id="photo_url" placeholder="https://...">
-            </div>
-            <button type="submit" id="btn">Enregistrer le membre</button>
-        </form>
-    </div>
 
-    <script>
-        const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<script>
+    const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.getElementById('equipe-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn');
-            btn.disabled = true;
+    document.getElementById('equipe-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn');
+        
+        // Effet de chargement
+        btn.disabled = true;
+        btn.innerText = "ENREGISTREMENT...";
 
-            const membre = {
-                nom: document.getElementById('nom').value,
-                role: document.getElementById('role').value,
-                description: document.getElementById('description').value,
-				km: document.getElementById('km').value ? parseFloat(document.getElementById('km').value) : 0, // Ajout des KM
-                photo_url: document.getElementById('photo_url').value
-            };
+        const membre = {
+            nom: document.getElementById('nom').value,
+            type: document.getElementById('type').value, // On utilise 'type' pour être raccord avec la table
+            description: document.getElementById('description').value,
+            km: document.getElementById('km').value ? parseFloat(document.getElementById('km').value) : 0,
+            photo_url: document.getElementById('photo_url').value
+        };
 
-            const { error } = await supabaseClient.from('randocooleurs').insert([membre]);
-            if (error) alert("Erreur : " + error.message);
-            else window.location.href = "equipe.html";
-        });
-    </script>
+        const { error } = await supabaseClient.from('randocooleurs').insert([membre]);
+        
+        if (error) {
+            alert("Erreur lors de l'ajout : " + error.message);
+            btn.disabled = false;
+            btn.innerText = "ENREGISTRER LE MEMBRE";
+        } else {
+            window.location.href = "equipe.html";
+        }
+    });
+</script>
+
 </body>
 </html>

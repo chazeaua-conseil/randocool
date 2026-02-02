@@ -3,45 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ajouter une Actualité - Randocool</title>
+    <title>📢 Publier une Actu | Randocool</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #27ae60; --dark: #2d3436; --bg: #f4f7f6; --blue: #3498db; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        
-        h1 { color: var(--dark); border-bottom: 2px solid var(--blue); padding-bottom: 10px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--dark); }
-        
-        input, textarea { 
-            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; 
-            box-sizing: border-box; font-family: inherit; font-size: 1em; 
+        :root {
+            --primary: #27ae60; --dark: #0f172a; --grey: #64748b;
+            --bg-light: #f1f5f9; --white: #ffffff; --border: #e2e8f0;
         }
 
-        .btn-save { 
-            width: 100%; padding: 15px; background: var(--blue); color: white; 
-            border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1em; 
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-light); 
+            margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh;
         }
-        .btn-save:hover { background: #2980b9; }
+
+        .container { 
+            width: 90%; max-width: 550px; background: var(--white); 
+            padding: 40px; border-radius: 30px; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.05);
+        }
+
+        .back-link {
+            text-decoration: none; color: var(--grey); font-size: 0.8rem; font-weight: 700;
+            display: inline-block; margin-bottom: 20px; transition: 0.2s;
+        }
+        .back-link:hover { color: var(--dark); transform: translateX(-5px); }
+
+        h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -1.2px; margin: 0 0 30px 0; color: var(--dark); }
+
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        .form-group label { font-size: 0.7rem; font-weight: 800; color: var(--grey); text-transform: uppercase; letter-spacing: 0.5px; }
         
-        .back-link { text-decoration: none; color: var(--grey); font-size: 0.9em; display: inline-block; margin-bottom: 20px; }
+        input, textarea {
+            padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border);
+            font-family: inherit; font-size: 0.95rem; background: #f8fafc; transition: 0.3s;
+        }
+        input:focus, textarea:focus { outline: none; border-color: var(--primary); background: white; }
+
+        .btn-submit {
+            width: 100%; padding: 16px; background: var(--dark); color: white;
+            border: none; border-radius: 15px; font-weight: 800; font-size: 0.9rem;
+            cursor: pointer; transition: 0.3s; margin-top: 10px;
+        }
+        .btn-submit:hover { background: var(--primary); transform: translateY(-2px); }
+        .btn-submit:disabled { opacity: 0.6; }
+
     </style>
 </head>
 <body>
 
 <div class="container">
-    <a href="index.html" class="back-link">← Retour au Journal</a>
+    <a href="index.html" class="back-link">← RETOUR À L'ACCUEIL</a>
+    
     <h1>📢 Nouvelle Actualité</h1>
-
+    
     <form id="actu-form">
         <div class="form-group">
-            <label>Date</label>
+            <label>Date de publication</label>
             <input type="date" id="date" required>
         </div>
 
         <div class="form-group">
-            <label>Image (URL)</label>
+            <label>Lien de l'image (URL)</label>
             <input type="url" id="photo_url" placeholder="https://images.unsplash.com/...">
         </div>
 
@@ -52,25 +74,26 @@
 
         <div class="form-group">
             <label>Message / Description</label>
-            <textarea id="description" rows="6" placeholder="Que se passe-t-il ?" required></textarea>
+            <textarea id="description" rows="5" placeholder="Que se passe-t-il sur les sentiers ?" required></textarea>
         </div>
 
-        <button type="submit" class="btn-save">Publier sur le site</button>
+        <button type="submit" id="btn" class="btn-submit">PUBLIER SUR LE JOURNAL</button>
     </form>
 </div>
 
 <script>
-    // Configuration Supabase
-			const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
-			const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
-			const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Initialiser la date du jour
     document.getElementById('date').valueAsDate = new Date();
 
     document.getElementById('actu-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+        const btn = document.getElementById('btn');
+        btn.disabled = true;
+        btn.innerText = "PUBLICATION...";
+
         const nouvelleActu = {
             date: document.getElementById('date').value,
             description: document.getElementById('description').value,
@@ -78,15 +101,13 @@
             photo_url: document.getElementById('photo_url').value
         };
 
-        const { data, error } = await supabaseClient
-            .from('actus')
-            .insert([nouvelleActu]);
+        const { error } = await supabaseClient.from('actu').insert([nouvelleActu]);
 
         if (error) {
-            alert("Erreur lors de la sauvegarde : " + error.message);
-            console.error(error);
+            alert("Erreur : " + error.message);
+            btn.disabled = false;
+            btn.innerText = "PUBLIER SUR LE JOURNAL";
         } else {
-            // Redirection simple vers l'accueil
             window.location.href = "index.html";
         }
     });

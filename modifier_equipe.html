@@ -2,65 +2,249 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Modifier un membre - Randocool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L'Équipe | Randocool</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #27ae60; --dark: #2d3436; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-        input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn-save { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-delete { background: #e74c3c; margin-top: 10px; }
+        :root {
+            --primary: #27ae60; --dark: #0f172a; --grey: #64748b;
+            --bg-light: #f1f5f9; --white: #ffffff;
+            --border: #e2e8f0;
+            --gold: linear-gradient(135deg, #D4AF37 0%, #FFF9E3 50%, #D4AF37 100%);
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-light); color: var(--dark); margin: 0; padding-top: 100px; }
+
+        /* HEADER */
+        header {
+            position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px); z-index: 2000; border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .nav-container {
+            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+            padding: 0 40px; height: 80px; width: 100%; box-sizing: border-box;
+        }
+        .nav-links { display: flex; gap: 25px; }
+        .nav-links a { text-decoration: none; color: var(--dark); font-weight: 700; font-size: 0.85rem; }
+        .logo { font-weight: 800; font-size: 1.8rem; letter-spacing: -1.5px; text-decoration: none; color: var(--dark); text-align: center; }
+        .nav-actions { display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
+        .btn-add-main { background: var(--dark); color: white !important; padding: 8px 18px; border-radius: 12px; font-size: 0.75rem !important; font-weight: 700; text-decoration: none; }
+
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+
+        /* LÉGENDE */
+        .legend-strip { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 40px; padding: 10px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; color: var(--grey); }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        /* GRILLE */
+        .equipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 20px; }
+
+        .member-card {
+            background: var(--white); border-radius: 28px; padding: 25px;
+            display: flex; align-items: center; gap: 25px; position: relative; transition: 0.3s;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .member-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.06); }
+
+        .photo-outer { flex-shrink: 0; width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: 3px solid var(--bg-light); }
+        .member-photo { width: 100%; height: 100%; object-fit: cover; }
+
+        .medal-badge {
+            position: absolute; top: 20px; right: 20px; width: 32px; height: 32px;
+            border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .medal-shine { animation: shine 3s infinite linear; background-size: 200% auto; }
+        @keyframes shine { to { background-position: 200% center; } }
+
+        .member-content { flex-grow: 1; padding-right: 20px; }
+        .member-name { font-size: 1.4rem; font-weight: 800; margin: 0 0 8px 0; letter-spacing: -0.8px; }
+        .badges-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .role-tag { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 4px 12px; border-radius: 20px; }
+        .km-pill { background: var(--dark); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; }
+        .member-desc { color: var(--grey); font-size: 0.85rem; line-height: 1.5; margin-bottom: 15px; }
+
+        .btn-edit-trigger {
+            background: #f8fafc; border: 1px solid var(--border); color: var(--grey); 
+            font-size: 0.65rem; font-weight: 800; padding: 8px 16px; border-radius: 10px; cursor: pointer;
+        }
+
+        /* MODALE STYLES */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px);
+            z-index: 3000; display: none; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: var(--white); width: 90%; max-width: 600px; border-radius: 30px;
+            padding: 40px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .close-modal { background: var(--bg-light); border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-weight: bold; }
+
+        .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-size: 0.7rem; font-weight: 800; color: var(--grey); text-transform: uppercase; }
+        .form-group input, .form-group textarea {
+            padding: 12px; border-radius: 12px; border: 1px solid var(--border);
+            background: #f8fafc; font-family: inherit; font-size: 0.95rem;
+        }
+        .form-group input:focus { outline: none; border-color: var(--primary); background: white; }
+
+        .btn-save {
+            width: 100%; padding: 16px; background: var(--dark); color: white;
+            border: none; border-radius: 15px; font-weight: 800; cursor: pointer; transition: 0.3s;
+        }
+        .btn-save:hover { background: var(--primary); transform: translateY(-2px); }
+
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>⚙️ Modifier le profil</h1>
-        <form id="edit-form">
-            <div class="form-group"><label>Nom</label><input type="text" id="nom" required></div>
-            <div class="form-group"><label>Type<input type="text" id="type" required></div>
-            <div class="form-group"><label>Description</label><textarea id="description"rows ="15"></textarea></div>
-			 <div class="form-group"><label>Kilomètres parcourus (km)</label><textarea id="km"rows = "1"></textarea></div>
-            <div class="form-group"><label>URL Photo</label><input type="url" id="photo_url"></div>
-            <button type="submit" class="btn-save">Mettre à jour</button>
-        </form>
+
+<header>
+    <div class="nav-container">
+        <div class="nav-links">
+            <a href="index.html">ACCUEIL</a>
+            <a href="archives.html">ARCHIVES</a>
+            <a href="equipe.html" style="color: var(--primary);">L'ÉQUIPE</a>
+        </div>
+        <a href="index.html" class="logo">Randocool</a>
+        <div class="nav-actions">
+            <a href="admin_equipe.html" class="btn-add-main">+ AJOUTER</a>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <div class="legend-strip">
+        <div class="legend-item"><div class="dot" style="background:#f1c40f"></div> 500+</div>
+        <div class="legend-item"><div class="dot" style="background:#e74c3c"></div> 1k+</div>
+        <div class="legend-item"><div class="dot" style="background:#27ae60"></div> 2k+</div>
+        <div class="legend-item"><div class="dot" style="background:#3498db"></div> 3k+</div>
+        <div class="legend-item"><div class="dot" style="background:#000000"></div> 4k+</div>
+        <div class="legend-item"><div class="dot" style="background:var(--gold)"></div> 5k+</div>
     </div>
 
-    <script>
-        const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        const params = new URLSearchParams(window.location.search);
-        const membreId = params.get('id');
+    <div class="equipe-grid" id="equipe-container"></div>
+</div>
 
-        async function chargerMembre() {
-            const { data } = await supabaseClient.from('randocooleurs').select('*').eq('id', membreId).single();
-            if (data) {
-                document.getElementById('nom').value = data.nom;
-                document.getElementById('type').value = data.type;
-                document.getElementById('description').value = data.description;
-				document.getElementById('km').value = data.km;
-                document.getElementById('photo_url').value = data.photo_url;
-            }
+<div class="modal-overlay" id="editModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 style="margin:0; letter-spacing:-1px;">Modifier le profil</h2>
+            <button class="close-modal" onclick="fermerModale()">×</button>
+        </div>
+        <form id="edit-form">
+            <input type="hidden" id="edit-id">
+            <div class="form-group">
+                <label>Nom Complet</label>
+                <input type="text" id="edit-nom" required>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Type / Rôle</label>
+                    <input type="text" id="edit-type" required>
+                </div>
+                <div class="form-group">
+                    <label>Kilomètres</label>
+                    <input type="number" id="edit-km">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Bio / Description</label>
+                <textarea id="edit-description" rows="4"></textarea>
+            </div>
+            <div class="form-group">
+                <label>URL de la photo</label>
+                <input type="url" id="edit-photo">
+            </div>
+            <button type="submit" class="btn-save">METTRE À JOUR LE PROFIL</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const ROLES = {
+        "Marcheur": { color: "#27ae60", bg: "#ecfdf5" },
+        "Décédé": { color: "#9b59b6", bg: "#f5f3ff" },
+        "Dictateur": { color: "#e67e22", bg: "#fff7ed" },
+        "Ancien membre": { color: "#64748b", bg: "#f1f5f9" },
+        "Assistance": { color: "#e74c3c", bg: "#fef2f2" },
+        "default": { color: "#94a3b8", bg: "#f8fafc" }
+    };
+
+    function getMedal(km) {
+        if (km >= 5000) return { col: 'var(--gold)', class: 'medal-shine' };
+        if (km >= 4000) return { col: '#000000', class: '' };
+        if (km >= 3000) return { col: '#3498db', class: '' };
+        if (km >= 2000) return { col: '#27ae60', class: '' };
+        if (km >= 1000) return { col: '#e74c3c', class: '' };
+        if (km >= 500)  return { col: '#f1c40f', class: '' };
+        return null;
+    }
+
+    async function chargerEquipe() {
+        const container = document.getElementById('equipe-container');
+        const { data, error } = await supabaseClient.from('randocooleurs').select('*').order('km', { ascending: true });
+        if (error) return;
+
+        container.innerHTML = data.map(m => {
+            const km = parseFloat(m.km) || 0;
+            const role = ROLES[m.type] || ROLES["default"];
+            const medal = getMedal(km);
+            return `
+            <div class="member-card">
+                ${medal ? `<div class="medal-badge ${medal.class}" style="background: ${medal.col};"></div>` : ''}
+                <div class="photo-outer">
+                    <img src="${m.photo_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="member-photo">
+                </div>
+                <div class="member-content">
+                    <h3 class="member-name">${m.nom}</h3>
+                    <div class="badges-row">
+                        <span class="role-tag" style="color: ${role.color}; background: ${role.bg};">${m.type}</span>
+                        ${km > 0 ? `<div class="km-pill">${km.toFixed(0)} KM</div>` : ''}
+                    </div>
+                    <p class="member-desc">${m.description || ''}</p>
+                    <button onclick="ouvrirModale('${m.id}')" class="btn-edit-trigger">Modifier</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    async function ouvrirModale(id) {
+        const { data } = await supabaseClient.from('randocooleurs').select('*').eq('id', id).single();
+        if (data) {
+            document.getElementById('edit-id').value = data.id;
+            document.getElementById('edit-nom').value = data.nom;
+            document.getElementById('edit-type').value = data.type;
+            document.getElementById('edit-km').value = data.km;
+            document.getElementById('edit-description').value = data.description;
+            document.getElementById('edit-photo').value = data.photo_url;
+            document.getElementById('editModal').style.display = 'flex';
         }
+    }
 
-        document.getElementById('edit-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const updates = {
-                nom: document.getElementById('nom').value,
-                type: document.getElementById('type').value,
-                description: document.getElementById('description').value,
-				km : document.getElementById('km').value,
-                photo_url: document.getElementById('photo_url').value
-            };
-            const { error } = await supabaseClient.from('randocooleurs').update(updates).eq('id', membreId);
-            if (!error) window.location.href = "equipe.html";
-        });
+    function fermerModale() { document.getElementById('editModal').style.display = 'none'; }
 
-        chargerMembre();
-    </script>
+    document.getElementById('edit-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-id').value;
+        const updates = {
+            nom: document.getElementById('edit-nom').value,
+            type: document.getElementById('edit-type').value,
+            km: document.getElementById('edit-km').value,
+            description: document.getElementById('edit-description').value,
+            photo_url: document.getElementById('edit-photo').value
+        };
+        const { error } = await supabaseClient.from('randocooleurs').update(updates).eq('id', id);
+        if (!error) { fermerModale(); chargerEquipe(); }
+    });
+
+    chargerEquipe();
+</script>
 </body>
 </html>
