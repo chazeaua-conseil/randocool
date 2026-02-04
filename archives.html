@@ -14,7 +14,7 @@
 
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-light); margin: 0; padding-top: 140px; }
 
-        /* HEADER IDENTIQUE INDEX */
+        /* HEADER */
         header {
             position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(15px); z-index: 2000; border-bottom: 1px solid rgba(0,0,0,0.05);
@@ -27,10 +27,8 @@
         .nav-links a { text-decoration: none; color: var(--dark); font-weight: 700; font-size: 0.85rem; transition: 0.3s; }
         .nav-links a:hover { color: var(--primary); }
         .logo { font-weight: 800; font-size: 1.8rem; letter-spacing: -1.5px; text-decoration: none; color: var(--dark); text-align: center; }
-        .nav-actions { display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
-        .search-box input { padding: 10px 15px 10px 35px; border-radius: 20px; border: 1px solid #e2e8f0; background: #f1f5f9; width: 180px; outline: none; font-family: inherit; }
-        .btn-add { background: var(--dark); color: white !important; padding: 8px 18px; border-radius: 12px; font-size: 0.75rem !important; font-weight: 700; text-decoration: none; transition: 0.3s; }
-        .btn-add:hover { background: var(--primary); }
+        .nav-actions { display: flex; justify-content: flex-end; align-items: center; }
+        .search-box input { padding: 10px 15px 10px 35px; border-radius: 20px; border: 1px solid #e2e8f0; background: #f1f5f9; width: 220px; outline: none; font-family: inherit; }
 
         /* FILTRES PAR ANNÉES */
         .filter-strip {
@@ -56,7 +54,6 @@
         .card-media { position: relative; height: 230px; margin: 0 15px; border-radius: 20px; overflow: hidden; }
         .card-img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* BADGE DATE VALIDÉ */
         .date-badge {
             position: absolute; top: 15px; left: 15px; background: rgba(255,255,255,0.9);
             backdrop-filter: blur(8px); padding: 8px 14px; border-radius: 12px; font-weight: 800;
@@ -66,8 +63,9 @@
         .date-badge small { font-size: 0.65rem; color: var(--grey); text-transform: uppercase; }
 
         .card-body { padding: 25px; flex-grow: 1; }
-        .stats-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        .stat { font-size: 0.75rem; font-weight: 700; color: var(--grey); background: #f8fafc; padding: 5px 12px; border-radius: 8px; }
+        .stats-row { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .stat { font-size: 0.75rem; font-weight: 700; color: var(--grey); background: #f8fafc; padding: 5px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; }
+        
         .card-footer { padding: 20px 25px; border-top: 1px solid #f8fafc; display: flex; justify-content: space-between; align-items: center; }
         
         #loader-text { text-align: center; padding: 50px; color: var(--grey); font-weight: 600; }
@@ -87,7 +85,6 @@
             <div class="search-box">
                 <input type="text" id="search" placeholder="Rechercher..." oninput="gererRecherche()">
             </div>
-            <a href="admin.html" class="btn-add">+ NOUVELLE RANDO</a>
         </div>
     </div>
 </header>
@@ -108,7 +105,7 @@
     let page = 0;
     const itemsPerPage = 6;
     let finDesDonnees = false;
-    let isFetching = false; // Verrou anti-doublons
+    let isFetching = false;
     let filtreActuel = 'all';
     let rechercheActuelle = '';
     let timerRecherche;
@@ -189,7 +186,6 @@
                 section.className = 'year-section';
                 section.innerHTML = `<div class="container"><div class="year-title">${annee}</div><div class="grid-archives" id="grid-${annee}"></div></div>`;
                 
-                // Insertion ordonnée
                 const sections = Array.from(wrapper.children);
                 const pos = sections.findIndex(s => parseInt(s.id.split('-')[1]) < annee);
                 if (pos === -1) wrapper.appendChild(section);
@@ -197,7 +193,6 @@
             }
             
             const grid = document.getElementById(`grid-${annee}`);
-            // Vérification anti-doublon locale au cas où
             if (!document.getElementById(`card-${r.id}`)) {
                 grid.innerHTML += renderCard(r);
             }
@@ -215,7 +210,9 @@
                 </div>
                 <div class="card-body">
                     <div class="stats-row">
-                        <span class="stat">📏 ${r.distance}km</span><span class="stat">📈 ${r.denivele}m</span>
+                        <span class="stat">📏 ${r.distance}km</span>
+                        <span class="stat">📈 ${r.denivele}m</span>
+                        <span class="stat">👥 ${r.nombre_participants || 0}</span>
                     </div>
                     <p style="font-size:0.9rem; color:var(--grey); line-height:1.5;">${r.description ? r.description.substring(0, 95) + '...' : ''}</p>
                 </div>

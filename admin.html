@@ -28,7 +28,6 @@
             overflow: hidden;
         }
 
-        /* Ambiance visuelle */
         .bg-glow {
             position: fixed;
             width: 450px; height: 450px;
@@ -47,7 +46,6 @@
             z-index: 1;
         }
 
-        /* Fenêtre Modale */
         .modal {
             position: relative;
             z-index: 2;
@@ -75,21 +73,14 @@
             align-items: center;
         }
 
-        .modal-header h2 {
-            margin: 0; font-size: 1.3rem; font-weight: 800; color: var(--bg-dark);
-        }
+        .modal-header h2 { margin: 0; font-size: 1.3rem; font-weight: 800; color: var(--bg-dark); }
 
         .close-btn {
             text-decoration: none; color: var(--text-light);
             font-size: 1.8rem; line-height: 1; transition: 0.2s;
         }
-        .close-btn:hover { color: var(--primary); }
 
-        .modal-content {
-            padding: 0 32px 32px 32px;
-            overflow-y: auto;
-            flex: 1;
-        }
+        .modal-content { padding: 0 32px 32px 32px; overflow-y: auto; flex: 1; }
 
         .form-section-title {
             font-size: 0.7rem; font-weight: 800; color: var(--primary);
@@ -103,22 +94,18 @@
 
         label { font-size: 0.75rem; font-weight: 700; color: var(--text-main); }
 
-        input, textarea {
+        input {
             padding: 12px 16px; border-radius: 14px; border: 1px solid #e2e8f0;
             background: #f8fafc; font-family: inherit; font-size: 0.9rem; transition: 0.2s;
         }
 
-        input:focus {
-            outline: none; border-color: var(--primary); background: #fff;
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-        }
+        input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
 
-        /* Participants Design */
         .participants-list { display: flex; flex-direction: column; gap: 10px; }
 
         .participant-row {
             display: flex; align-items: center; padding: 12px 16px;
-            background: #f8fafc; border-radius: 18px; border: 1px solid transparent;
+            background: #f8fafc; border-radius: 18px; border: 2px solid transparent;
             transition: 0.2s; cursor: pointer; user-select: none;
         }
 
@@ -133,7 +120,7 @@
 
         .participant-info { flex: 1; }
         .participant-name { display: block; font-size: 0.9rem; font-weight: 700; color: var(--text-main); }
-        .participant-km { font-size: 0.65rem; color: var(--text-light); font-weight: 500; }
+        .participant-km { font-size: 0.65rem; color: var(--text-light); }
 
         .toggle-small {
             background: white; padding: 5px 12px; border-radius: 20px;
@@ -142,30 +129,20 @@
         }
         .participant-row.active .toggle-small { border-color: var(--primary); color: var(--primary); }
 
-        /* Autres boutons */
         .btn-others {
             text-align: center; color: var(--primary); font-size: 0.75rem;
             font-weight: 800; cursor: pointer; padding: 12px;
-            margin-top: 15px; border: 2px dashed #e2e8f0; border-radius: 15px; transition: 0.2s;
+            margin-top: 15px; border: 2px dashed #e2e8f0; border-radius: 15px;
         }
-        .btn-others:hover { background: #f0fdf4; border-color: var(--primary); }
 
-        .modal-footer {
-            padding: 24px 32px; background: #f8fafc;
-            border-top: 1px solid #f1f5f9; border-radius: 0 0 35px 35px;
-        }
+        .modal-footer { padding: 24px 32px; background: #f8fafc; border-top: 1px solid #f1f5f9; border-radius: 0 0 35px 35px; }
 
         .btn-submit {
             width: 100%; padding: 18px; background: var(--primary);
             color: white; border: none; border-radius: 18px;
             font-weight: 700; font-size: 1rem; cursor: pointer;
-            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.25); transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.25);
         }
-        .btn-submit:hover { background: var(--primary-dark); transform: translateY(-2px); }
-
-        /* Scrollbar */
-        .modal-content::-webkit-scrollbar { width: 4px; }
-        .modal-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -203,7 +180,7 @@
     </div>
 
     <div class="modal-footer">
-        <button type="submit" form="marche-form" class="btn-submit">Publier la rando</button>
+        <button type="submit" form="marche-form" id="submit-btn" class="btn-submit">Publier la rando</button>
     </div>
 </div>
 
@@ -216,7 +193,7 @@
         const { data: membres } = await supabaseClient
             .from('randocooleurs')
             .select('id, nom, photo_url, km, type')
-            .order('km', { ascending: false });
+            .order('nom', { ascending: true });
 
         const list = document.getElementById('participants-list');
         if (!membres) return;
@@ -247,7 +224,7 @@
                     <span class="participant-km">${Math.round(m.km || 0)} km au compteur</span>
                 </div>
                 <div class="toggle-small" onclick="event.stopPropagation()">
-                    <input type="checkbox" class="is-small" data-id="${m.id}"> PETIT
+                    <input type="checkbox" class="is-small" data-id="${m.id}"> PM
                 </div>
             </div>
         `;
@@ -266,31 +243,61 @@
 
     document.getElementById('marche-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const btn = document.getElementById('submit-btn');
+        btn.innerText = "Calcul et Publication...";
+        btn.disabled = true;
+
         const dNorm = parseFloat(document.getElementById('distance').value);
         const dSmall = parseFloat(document.getElementById('small_distance').value || 0);
+        const presents = document.querySelectorAll('.is-present:checked');
 
-        const { data: marche, error: mErr } = await supabaseClient.from('randos').insert([{
+        if (presents.length === 0) {
+            alert("Sélectionnez au moins un marcheur !");
+            btn.disabled = false;
+            btn.innerText = "Publier la rando";
+            return;
+        }
+
+        // 1. Insertion de la rando avec nombre_participants calculé
+        const { data: marcheData, error: mErr } = await supabaseClient.from('randos').insert([{
             titre: document.getElementById('titre').value,
             date: document.getElementById('date').value,
             distance: dNorm,
             small_distance: dSmall,
             denivele: parseInt(document.getElementById('denivele').value || 0),
             image_url: document.getElementById('image_url').value,
-            album_url: document.getElementById('album_url').value
+            album_url: document.getElementById('album_url').value,
+            nombre_participants: presents.length
         }]).select();
 
-        if (mErr) return alert("Erreur");
+        if (mErr) {
+            alert("Erreur rando");
+            btn.disabled = false;
+            return;
+        }
 
-        const presents = document.querySelectorAll('.is-present:checked');
+        const marcheId = marcheData[0].id;
+
+        // 2. Boucle de mise à jour des KM et participations
         for (let p of presents) {
             const mId = p.dataset.id;
             const isSmall = document.querySelector(`.is-small[data-id="${mId}"]`).checked;
             const gain = isSmall ? dSmall : dNorm;
 
-            await supabaseClient.from('participations').insert([{ marche_id: marche[0].id, membre_id: mId, a_fait_petit_parcours: isSmall }]);
+            // Insertion participation
+            await supabaseClient.from('participations').insert([{ 
+                marche_id: marcheId, 
+                membre_id: mId, 
+                a_fait_petit_parcours: isSmall 
+            }]);
+
+            // Récupération et Update des KM
             const { data: mData } = await supabaseClient.from('randocooleurs').select('km').eq('id', mId).single();
-            await supabaseClient.from('randocooleurs').update({ km: (parseFloat(mData.km) || 0) + gain }).eq('id', mId);
+            const nouveauKm = (parseFloat(mData.km) || 0) + gain;
+            
+            await supabaseClient.from('randocooleurs').update({ km: nouveauKm }).eq('id', mId);
         }
+
         window.location.href = "index.html";
     });
 
