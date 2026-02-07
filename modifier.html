@@ -262,7 +262,9 @@
                 </div>
                 <div class="card-body">
                     <div class="stats-row">
-                        <span class="stat">📏 ${r.distance}km</span><span class="stat">📈 ${r.denivele}m</span>
+                        <span class="stat">📏 ${r.distance}km</span>
+                        <span class="stat">📈 ${r.denivele}m</span>
+                        <span class="stat">👥 ${r.nombre_participants || 0}</span>
                     </div>
                     <p style="font-size:0.9rem; color:var(--grey); line-height:1.5;">${r.description ? r.description.substring(0, 95) + '...' : ''}</p>
                 </div>
@@ -336,4 +338,5 @@
     init();
 </script>
 </body>
+
 </html>
