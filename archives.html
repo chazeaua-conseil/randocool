@@ -217,7 +217,7 @@
                     <p style="font-size:0.9rem; color:var(--grey); line-height:1.5;">${r.description ? r.description.substring(0, 95) + '...' : ''}</p>
                 </div>
                 <div class="card-footer">
-                    <button onclick="ouvrirModale('${r.id}')" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:0.8rem; font-weight:700;">ÉDITER</button>
+                    <a href="modifier.html?id=${r.id}" style="color:#cbd5e1; text-decoration:none; font-size:0.8rem; font-weight:700;">ÉDITER</a>
                     ${r.album_url ? `<a href="${r.album_url}" target="_blank" style="text-decoration:none; font-size:0.8rem; font-weight:700; color:var(--primary);">ALBUM</a>` : ''}
                 </div>
             </div>`;
@@ -233,3 +233,4 @@
 </body>
 
 </html>
+
