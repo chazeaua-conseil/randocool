@@ -32,13 +32,26 @@
         .nav-actions { display: flex; justify-content: flex-end; align-items: center; gap: 15px; }
         .search-input { padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border); background: #f1f5f9; width: 180px; font-size: 0.8rem; font-family: inherit; }
 
+        /* AUTOCOMPLETE STYLES */
+        .search-container { position: relative; }
+        .search-results {
+            position: absolute; top: 110%; left: 0; right: 0; 
+            background: white; border-radius: 12px; border: 1px solid var(--border);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; 
+            max-height: 300px; overflow-y: auto; z-index: 3000;
+        }
+        .search-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: 0.2s; }
+        .search-item:last-child { border-bottom: none; }
+        .search-item:hover { background: #f8fafc; }
+        .search-item-title { display: block; font-weight: 700; font-size: 0.85rem; color: var(--dark); }
+        .search-item-date { font-size: 0.7rem; color: var(--grey); }
+
         /* HERO SLIDER */
         .hero-section { background-color: var(--hero-bg); padding: 30px 0; }
         .hero-slider { position: relative; max-width: 1300px; margin: 0 auto; height: 700px; overflow: hidden; border-radius: 40px; }
         .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.8s ease; }
         .slide.active { opacity: 1; }
         
-        /* Titre en haut à gauche */
         .hero-title-top {
             position: absolute; top: 40px; left: 50px; color: white;
             font-size: 3.5rem; font-weight: 800; letter-spacing: -2px;
@@ -46,7 +59,6 @@
             max-width: 70%;
         }
 
-        /* Carte blanche de résumé - Hauteur auto pour contenir tout le texte */
         .hero-card {
             position: absolute; bottom: 50px; left: 50px; background: white; 
             padding: 40px; border-radius: 35px; width: 500px; 
@@ -59,7 +71,6 @@
             margin: 0; white-space: pre-line;
         }
 
-        /* CALENDRIER SLIDER */
         .date-badge-mini { 
             position: absolute; top: 40px; right: 40px; background: white; border-radius: 20px; 
             width: 80px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden; z-index: 10;
@@ -67,7 +78,6 @@
         .m-bg { background: var(--primary); color: white; font-size: 0.8rem; font-weight: 800; padding: 7px 0; text-transform: uppercase; }
         .d-num { font-size: 1.8rem; font-weight: 800; color: var(--dark); padding: 12px 0; }
 
-        /* GRID & CARDS */
         .container { max-width: 1300px; margin: 0 auto; padding: 0 30px; }
         .grid-marches { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 35px; }
         .card { background: white; border-radius: 28px; overflow: hidden; border: 1px solid #f0f0f0; position: relative; transition: 0.3s; }
@@ -75,20 +85,27 @@
         .card-img { height: 220px; width: 100%; object-fit: cover; }
         .pill { background: #f1f5f9; padding: 6px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
 
-        /* NAVIGATION SLIDER */
         .slider-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 60px; height: 60px; background: white; border: none; border-radius: 50%; cursor: pointer; z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: 0.3s; font-size: 1.2rem; }
         .slider-arrow:hover { background: var(--primary); color: white; }
         .prev-arrow { left: 30px; } .next-arrow { right: 30px; }
 
-        /* NEWS */
         .news-section { padding: 80px 0; background: var(--light-bg); }
         .news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 40px; }
         .actu-card { display: flex; flex-direction: column; gap: 12px; }
         .date-badge-inline { background: white; border-radius: 10px; width: 45px; text-align: center; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0; }
 
-        /* MODALE */
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 3000; }
         .modal-content { background: white; padding: 40px; border-radius: 30px; width: 90%; max-width: 450px; }
+
+        /* Styles spécifique pour la modale de choix */
+        .choice-btn {
+            display: block; width: 100%; padding: 18px; margin-bottom: 12px;
+            border: none; border-radius: 15px; font-weight: 800; font-size: 1rem;
+            cursor: pointer; text-align: center; text-decoration: none; transition: 0.2s;
+        }
+        .btn-album { background: var(--primary); color: white; }
+        .btn-update { background: var(--dark); color: white; }
+        .choice-btn:hover { opacity: 0.9; transform: translateY(-2px); }
     </style>
 </head>
 <body>
@@ -102,7 +119,10 @@
         </div>
         <a href="index.html" class="logo">Randocool</a>
         <div class="nav-actions">
-            <input type="text" id="searchInput" class="search-input" placeholder="Rechercher...">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Rechercher..." autocomplete="off">
+                <div id="searchResults" class="search-results"></div>
+            </div>
             <a href="admin.html" style="background: var(--dark); color: white; padding: 12px 20px; border-radius: 12px; text-decoration: none; font-size: 0.8rem; font-weight: 700;">+ AJOUTER</a>
         </div>
     </div>
@@ -145,21 +165,93 @@
     </div>
 </div>
 
+<div id="choiceModal" class="modal-overlay">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+            <h3 id="choiceTitle" style="margin:0;">Que souhaitez-vous faire ?</h3>
+            <button onclick="closeChoiceModal()" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">&times;</button>
+        </div>
+        <a id="choiceAlbumBtn" href="#" target="_blank" class="choice-btn btn-album">VOIR L'ALBUM 📸</a>
+        <a id="choiceUpdateBtn" href="#" class="choice-btn btn-update">METTRE À JOUR LA RANDO ✏️</a>
+    </div>
+</div>
+
 <script>
     const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let currentIdx = 0;
+    let allRandos = []; // Cache pour la recherche
 
     async function init() {
         const { data: randos } = await supabaseClient.from('randos').select('*').order('date', { ascending: false });
         const { data: actus } = await supabaseClient.from('actus').select('*').order('date', { ascending: false }).limit(4);
         if (randos) {
+            allRandos = randos;
             renderHero(randos.slice(0, 5));
             renderGrid(randos.slice(5, 11));
         }
         renderActus(actus || []);
+        setupSearch();
+    }
+
+    // Gestion de la recherche avec modale de choix
+    function setupSearch() {
+        const input = document.getElementById('searchInput');
+        const results = document.getElementById('searchResults');
+
+        input.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase().trim();
+            if (val.length < 2) {
+                results.style.display = 'none';
+                return;
+            }
+
+            const filtered = allRandos.filter(r => r.titre.toLowerCase().includes(val)).slice(0, 5);
+            
+            if (filtered.length > 0) {
+                results.innerHTML = filtered.map(r => {
+                    const d = new Date(r.date);
+                    // Modification ici : on appelle une fonction JS au lieu d'un lien direct
+                    return `
+                    <div class="search-item" onclick="openChoiceModal('${r.id}')">
+                        <span class="search-item-title">${r.titre}</span>
+                        <span class="search-item-date">${d.toLocaleDateString('fr-FR')}</span>
+                    </div>`;
+                }).join('');
+                results.style.display = 'block';
+            } else {
+                results.innerHTML = '<div style="padding:15px; font-size:0.8rem; color:var(--grey);">Aucune rando trouvée</div>';
+                results.style.display = 'block';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target) && !results.contains(e.target)) {
+                results.style.display = 'none';
+            }
+        });
+    }
+
+    // Fonctions pour la modale de choix
+    function openChoiceModal(id) {
+        const rando = allRandos.find(r => r.id == id);
+        if (!rando) return;
+
+        document.getElementById('choiceTitle').innerText = rando.titre;
+        document.getElementById('choiceAlbumBtn').href = rando.album_url || "#";
+        document.getElementById('choiceUpdateBtn').href = `modifier.html?id=${rando.id}`;
+        
+        // Cacher les résultats de recherche
+        document.getElementById('searchResults').style.display = 'none';
+        
+        // Afficher la modale
+        document.getElementById('choiceModal').style.display = 'flex';
+    }
+
+    function closeChoiceModal() {
+        document.getElementById('choiceModal').style.display = 'none';
     }
 
     function renderHero(items) {
