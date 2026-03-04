@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Randocool | La Genèse</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #27ae60; --dark: #0f172a; --grey: #64748b;
+            --light-bg: #f8fafc; --white: #ffffff; --border: #e2e8f0;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--white); 
+            color: var(--dark); 
+            margin: 0; 
+            padding-top: 80px; 
+        }
+
+        /* HEADER */
+        header {
+            position: fixed; top: 0; left: 0; right: 0; height: 80px;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+            z-index: 2000; border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 0 40px;
+        }
+        .nav-container {
+            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+            width: 100%; height: 100%; box-sizing: border-box;
+        }
+        .nav-links { display: flex; gap: 25px; }
+        .nav-links a { text-decoration: none; color: var(--dark); font-weight: 700; font-size: 0.85rem; }
+        .logo { font-weight: 800; font-size: 1.8rem; letter-spacing: -1.5px; text-decoration: none; color: var(--dark); }
+        .nav-actions { display: flex; justify-content: flex-end; align-items: center; gap: 15px; }
+        
+        /* BOUTONS ACTIONS */
+        .btn-add { 
+            background: var(--dark); color: white; padding: 12px 20px; 
+            border-radius: 12px; text-decoration: none; font-size: 0.8rem; 
+            font-weight: 700; border: none; cursor: pointer; transition: 0.2s;
+        }
+        .btn-add:hover { opacity: 0.9; transform: translateY(-2px); }
+        
+        .btn-genesis {
+            background: var(--primary); color: white; padding: 12px 20px; 
+            border-radius: 12px; text-decoration: none; font-size: 0.8rem; 
+            font-weight: 700; transition: 0.2s;
+        }
+        .btn-genesis:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* TIMELINE STRUCTURE */
+        .container { max-width: 900px; margin: 60px auto; padding: 0 30px; position: relative; }
+        
+        /* La ligne verticale */
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--light-bg);
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 50px;
+            padding-left: 60px;
+        }
+
+        /* Le point sur la ligne */
+        .timeline-dot {
+            position: absolute;
+            left: 12px;
+            top: 5px;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border: 4px solid var(--white);
+            border-radius: 50%;
+            z-index: 2;
+            box-shadow: 0 0 0 4px var(--light-bg);
+        }
+
+        .timeline-date {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .timeline-card {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+            transition: 0.3s;
+        }
+        .timeline-card:hover {
+            transform: translateX(10px);
+            border-color: var(--primary);
+        }
+
+        .timeline-detail {
+            font-size: 1rem;
+            color: var(--grey);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* MODAL */
+        .modal-overlay { 
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); 
+            backdrop-filter: blur(5px); display: none; align-items: center; 
+            justify-content: center; z-index: 3000; 
+        }
+        .modal-content { background: white; padding: 40px; border-radius: 30px; width: 90%; max-width: 450px; }
+        .form-input { 
+            width: 100%; padding: 14px; border: 1px solid var(--border); 
+            border-radius: 12px; margin-bottom: 15px; font-family: inherit; box-sizing: border-box;
+        }
+
+        @media (max-width: 600px) {
+            header { padding: 0 20px; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="nav-container">
+        <div class="nav-links">
+            <a href="index.html">ACCUEIL</a>
+            <a href="archives.html">ARCHIVES</a>
+            <a href="modifier_equipe.html">L'EQUIPE</a>
+            <a href="dico.html">DICTIONNAIRE</a>
+            <a href="genese.html" style="color: var(--primary);">GENÈSE</a>
+        </div>
+        <a href="index.html" class="logo">Randocool</a>
+        <div class="nav-actions">
+            <a href="https://drive.google.com/file/d/1jEU2VEJBEFLWFEQ0oWh2JZecy0CCLQ5o/view?usp=sharing" target="_blank" class="btn-genesis">LA GENÈSE 📜</a>
+            <button onclick="openModal()" class="btn-add">+ AJOUTER</button>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div id="timeline-root" class="timeline">
+        <p style="text-align: center; color: var(--grey);">Exploration du passé...</p>
+    </div>
+</main>
+
+<div id="addModal" class="modal-overlay">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+            <h3 style="margin:0; font-weight: 800;">Nouvelle étape</h3>
+            <button onclick="closeModal()" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">&times;</button>
+        </div>
+        <form id="dateForm">
+            <input type="text" id="dateInput" class="form-input" placeholder="Date ou Année (ex: 12 Mars 2023)" required>
+            <textarea id="detailInput" class="form-input" placeholder="Que s'est-il passé ?" required style="height: 120px;"></textarea>
+            <button type="submit" style="width:100%; background:var(--primary); color:white; border:none; padding:16px; border-radius:15px; font-weight:800; cursor:pointer;">ENREGISTRER</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function init() {
+        // On récupère les dates. On trie par ID ou date si possible, 
+        // ici on va supposer que l'ordre d'insertion ou un tri chronologique est voulu.
+        const { data: entries, error } = await supabaseClient
+            .from('dates')
+            .select('*')
+            .order('created_at', { ascending: true }); // Ou une autre colonne de tri
+
+        if (entries) {
+            renderTimeline(entries);
+        }
+    }
+
+    function renderTimeline(items) {
+        const root = document.getElementById('timeline-root');
+        root.innerHTML = '';
+
+        if (items.length === 0) {
+            root.innerHTML = '<p style="text-align: center; color: var(--grey);">Aucune date enregistrée pour le moment.</p>';
+            return;
+        }
+
+        items.forEach(item => {
+            const entry = document.createElement('div');
+            entry.className = 'timeline-item';
+            entry.innerHTML = `
+                <div class="timeline-dot"></div>
+                <span class="timeline-date">${item.date}</span>
+                <div class="timeline-card">
+                    <p class="timeline-detail">${item.detail}</p>
+                </div>
+            `;
+            root.appendChild(entry);
+        });
+    }
+
+    // Modal functions
+    function openModal() { document.getElementById('addModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+
+    document.getElementById('dateForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const dateValue = document.getElementById('dateInput').value;
+        const detailValue = document.getElementById('detailInput').value;
+
+        const { error } = await supabaseClient.from('dates').insert([{ 
+            date: dateValue, 
+            detail: detailValue 
+        }]);
+        
+        if (!error) {
+            closeModal();
+            document.getElementById('dateForm').reset();
+            init(); // Recharger la timeline
+        } else {
+            alert("Erreur lors de l'enregistrement : " + error.message);
+        }
+    });
+
+    init();
+</script>
+</body>
+</html>

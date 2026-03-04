@@ -3,121 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dico Randocool | Le Lexique de la Bande</title>
-    
+    <title>Randocool | Le Dico de la Bande</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2ecc71;
-            --dark-color: #2c3e50;
-            --light-bg: #f8f9fa;
+            --primary: #27ae60; --dark: #0f172a; --grey: #64748b;
+            --light-bg: #f8fafc; --white: #ffffff; --border: #e2e8f0;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light-bg); margin: 0; padding-bottom: 50px;}
-        header { text-align: center; padding: 40px 20px; background: #27ae60; color: white; }
-        .search-container { max-width: 500px; margin: -20px auto 30px; padding: 0 20px; }
-        #search-input { width: 100%; padding: 12px 20px; border-radius: 25px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); outline: none; }
-        .dico-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 20px; max-width: 1100px; margin: 0 auto; }
-        .dico-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.3s; display: flex; flex-direction: column; }
-        .dico-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
-        .dico-image { width: 100%; height: 180px; object-fit: cover; background: #eee; }
-        .dico-content { padding: 15px; flex-grow: 1; }
-        .dico-title { margin: 0 0 8px 0; color: var(--dark-color); font-size: 1.2rem; border-bottom: 2px solid var(--primary-color); display: inline-block; }
-        .dico-detail { color: #555; font-style: italic; font-size: 0.95rem; margin-top: 10px; line-height: 1.4; }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--white); 
+            color: var(--dark); 
+            margin: 0; 
+            padding-top: 80px; 
+        }
+
+        /* HEADER */
+        header {
+            position: fixed; top: 0; left: 0; right: 0; height: 80px;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+            z-index: 2000; border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 0 40px;
+        }
+        .nav-container {
+            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+            width: 100%; height: 100%; box-sizing: border-box;
+        }
+        .nav-links { display: flex; gap: 25px; }
+        .nav-links a { text-decoration: none; color: var(--dark); font-weight: 700; font-size: 0.85rem; }
+        .logo { font-weight: 800; font-size: 1.8rem; letter-spacing: -1.5px; text-decoration: none; color: var(--dark); }
+        .nav-actions { display: flex; justify-content: flex-end; align-items: center; gap: 15px; }
+        
+        /* BOUTONS ACTIONS */
+        .btn-add { 
+            background: var(--dark); color: white; padding: 12px 20px; 
+            border-radius: 12px; text-decoration: none; font-size: 0.8rem; 
+            font-weight: 700; border: none; cursor: pointer; transition: 0.2s;
+        }
+        .btn-add:hover { opacity: 0.9; transform: translateY(-2px); }
+        
+        /* BOUTON LE DICO (Mis à jour) */
+        .btn-dico {
+            background: var(--primary); color: white; padding: 12px 20px; 
+            border-radius: 12px; text-decoration: none; font-size: 0.8rem; 
+            font-weight: 700; transition: 0.2s;
+        }
+        .btn-dico:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* ALPHABET NAV */
+        .alphabet-nav {
+            position: sticky; top: 80px; background: white; 
+            padding: 15px 0; z-index: 1000; border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+        .alphabet-nav a {
+            margin: 0 4px; text-decoration: none; color: var(--grey);
+            font-weight: 700; font-size: 0.85rem; padding: 8px 12px;
+            border-radius: 10px; transition: 0.2s;
+        }
+        .alphabet-nav a:hover { background: var(--light-bg); color: var(--primary); }
+
+        /* GRID & CARDS */
+        .container { max-width: 1300px; margin: 40px auto; padding: 0 30px; }
+        .letter-section { margin-bottom: 60px; scroll-margin-top: 160px; }
+        .letter-header { 
+            font-size: 2.5rem; font-weight: 800; color: var(--primary); 
+            margin-bottom: 25px; border-bottom: 4px solid var(--light-bg);
+        }
+
+        .grid-dico { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+            gap: 20px; 
+        }
+        
+        .card { 
+            background: white; border-radius: 20px; overflow: hidden; 
+            border: 1px solid #f0f0f0; transition: 0.3s;
+        }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.05); }
+        .card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #f1f5f9; }
+        .card-body { padding: 15px; }
+        .card-title { margin: 0 0 5px 0; font-size: 1rem; font-weight: 800; color: var(--dark); }
+        .card-text { font-size: 0.8rem; color: var(--grey); line-height: 1.4; font-style: italic; }
+
+        /* MODAL */
+        .modal-overlay { 
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); 
+            backdrop-filter: blur(5px); display: none; align-items: center; 
+            justify-content: center; z-index: 3000; 
+        }
+        .modal-content { background: white; padding: 40px; border-radius: 30px; width: 90%; max-width: 450px; }
+        .form-input { 
+            width: 100%; padding: 14px; border: 1px solid var(--border); 
+            border-radius: 12px; margin-bottom: 15px; font-family: inherit; box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Le Dico Randocool</h1>
-        <p>Le lexique officiel de la tribu</p>
-    </header>
-
-    <div class="search-container">
-        <input type="text" id="search-input" placeholder="Rechercher une expression (ex: genoux, azimut...)">
-    </div>
-
-    <main>
-        <div id="dico-container" class="dico-grid">
-            <p id="status-msg" style="grid-column: 1/-1; text-align: center;">Préparation du sac à dos (chargement)...</p>
+<header>
+    <div class="nav-container">
+        <div class="nav-links">
+            <a href="index.html">ACCUEIL</a>
+            <a href="archives.html">ARCHIVES</a>
+            <a href="modifier_equipe.html">L'EQUIPE</a>
+            <a href="dico.html" style="color: var(--primary);">DICTIONNAIRE</a>
+            <a href="genese.html">GENESE</a>
         </div>
-    </main>
+        <a href="index.html" class="logo">Randocool</a>
+        <div class="nav-actions">
+            <a href="https://drive.google.com/file/d/1YzgW7BA-eUDN919JS77hP4SRcW4drGbI/view?usp=share_link" target="_blank" class="btn-dico">LE DICO</a>
+            <button onclick="openModal()" class="btn-add">+ AJOUTER UN MOT</button>
+        </div>
+    </div>
+</header>
 
-    <script>
-        const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
-        
-        let supabaseClient;
-        let allTerms = [];
+<div id="alphabetNav" class="alphabet-nav"></div>
 
-        async function init() {
-            try {
-                // Initialisation sécurisée pour Safari
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                console.log("Client Supabase prêt !");
-                await loadDico();
-            } catch (err) {
-                console.error("Erreur init:", err);
-                document.getElementById('status-msg').innerHTML = "Erreur d'initialisation : " + err.message;
-            }
-        }
+<main class="container">
+    <div id="dico-root">
+        <p style="text-align: center; color: var(--grey);">Ouverture du grimoire...</p>
+    </div>
+</main>
 
-        async function loadDico() {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('dico_randocool')
-                    .select('*')
-                    .order('titre', { ascending: true });
+<div id="addModal" class="modal-overlay">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+            <h3 style="margin:0; font-weight: 800;">Nouveau terme</h3>
+            <button onclick="closeModal()" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">&times;</button>
+        </div>
+        <form id="dicoForm">
+            <input type="text" id="titre" class="form-input" placeholder="Le mot ou l'expression" required>
+            <input type="url" id="image" class="form-input" placeholder="URL de l'image (optionnel)">
+            <textarea id="detail" class="form-input" placeholder="La définition rigolote..." required style="height: 100px;"></textarea>
+            <button type="submit" style="width:100%; background:var(--primary); color:white; border:none; padding:16px; border-radius:15px; font-weight:800; cursor:pointer;">ENREGISTRER</button>
+        </form>
+    </div>
+</div>
 
-                if (error) throw error;
+<script>
+    const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-                allTerms = data;
-                displayTerms(allTerms);
+    async function init() {
+        const { data: entries, error } = await supabaseClient
+            .from('dico_randocool')
+            .select('*')
+            .order('titre', { ascending: true });
 
-            } catch (err) {
-                console.error("Erreur table:", err);
-                document.getElementById('status-msg').innerHTML = "Impossible de lire la table. Vérifie les RLS sur Supabase.";
-            }
-        }
+        if (entries) renderDico(entries);
+    }
 
-        function displayTerms(terms) {
-            const container = document.getElementById('dico-container');
-            container.innerHTML = '';
+    function renderDico(items) {
+        const root = document.getElementById('dico-root');
+        const nav = document.getElementById('alphabetNav');
+        root.innerHTML = '';
+        nav.innerHTML = '';
 
-            if (terms.length === 0) {
-                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Aucun mot trouvé dans le sentier...</p>';
-                return;
-            }
+        const grouped = items.reduce((acc, item) => {
+            const letter = item.titre[0].toUpperCase();
+            if (!acc[letter]) acc[letter] = [];
+            acc[letter].push(item);
+            return acc;
+        }, {});
 
-            terms.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'dico-card';
-                card.innerHTML = `
-                    <img src="${item.image || 'https://via.placeholder.com/400x250?text=Randocool'}" 
-                         alt="${item.titre}" 
-                         class="dico-image" 
-                         onerror="this.src='https://via.placeholder.com/400x250?text=Pas+d+image'">
-                    <div class="dico-content">
-                        <h3 class="dico-title">${item.titre}</h3>
-                        <p class="dico-detail">"${item.detail}"</p>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
+        const sortedLetters = Object.keys(grouped).sort();
 
-        // Gestion de la recherche
-        document.getElementById('search-input').addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase();
-            const filtered = allTerms.filter(t => 
-                (t.titre && t.titre.toLowerCase().includes(val)) || 
-                (t.detail && t.detail.toLowerCase().includes(val))
-            );
-            displayTerms(filtered);
+        sortedLetters.forEach(letter => {
+            nav.innerHTML += `<a href="#letter-${letter}">${letter}</a>`;
+            const section = document.createElement('section');
+            section.id = `letter-${letter}`;
+            section.className = 'letter-section';
+            section.innerHTML = `
+                <h2 class="letter-header">${letter}</h2>
+                <div class="grid-dico">
+                    ${grouped[letter].map(item => `
+                        <div class="card">
+                            <img src="${item.image || 'https://via.placeholder.com/400x225?text=Randocool'}" class="card-img" onerror="this.src='https://via.placeholder.com/400x225?text=Pas+d+image'">
+                            <div class="card-body">
+                                <h3 class="card-title">${item.titre}</h3>
+                                <p class="card-text">"${item.detail}"</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            root.appendChild(section);
         });
+    }
 
-        // Lancement
-        window.onload = init;
-    </script>
+    function openModal() { document.getElementById('addModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+
+    document.getElementById('dicoForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const { error } = await supabaseClient.from('dico_randocool').insert([{ 
+            titre: document.getElementById('titre').value, 
+            image: document.getElementById('image').value, 
+            detail: document.getElementById('detail').value
+        }]);
+        if (!error) { closeModal(); document.getElementById('dicoForm').reset(); init(); }
+    });
+
+    init();
+</script>
 </body>
 </html>
