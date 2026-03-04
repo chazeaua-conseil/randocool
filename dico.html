@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dico Randocool | Le Dico illustré</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --primary-color: #2ecc71; /* Vert rando */
+            --dark-color: #2c3e50;
+            --light-bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            margin: 0;
+            color: var(--dark-color);
+        }
+
+        header {
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        /* --- Barre de Recherche --- */
+        .search-container {
+            max-width: 600px;
+            margin: -25px auto 30px;
+            padding: 0 20px;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 15px 25px;
+            border-radius: 30px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        #search-input:focus {
+            box-shadow: 0 4px 20px rgba(46, 204, 113, 0.3);
+        }
+
+        /* --- Grille de Cartes --- */
+        .dico-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .dico-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            border-bottom: 4px solid transparent;
+        }
+
+        .dico-card:hover {
+            transform: translateY(-8px);
+            border-bottom: 4px solid var(--primary-color);
+        }
+
+        .dico-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #eee;
+        }
+
+        .dico-content {
+            padding: 20px;
+        }
+
+        .dico-title {
+            margin: 0 0 10px 0;
+            font-size: 1.4rem;
+            color: var(--dark-color);
+            text-transform: capitalize;
+        }
+
+        .dico-detail {
+            color: #666;
+            line-height: 1.6;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        .no-result {
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 40px;
+            color: #999;
+        }
+
+        /* Mobile adaptation */
+        @media (max-width: 600px) {
+            .dico-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Le Dico Randocool</h1>
+        <p>Les expressions mythiques de nos sorties</p>
+    </header>
+
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Chercher un mot (ex: azimut, genoux...)...">
+    </div>
+
+    <main>
+        <div id="dico-container" class="dico-grid">
+            <p style="text-align:center; grid-column: 1/-1;">Chargement du lexique...</p>
+        </div>
+    </main>
+
+    <script>
+    // On attend que TOUT soit chargé (SDK compris)
+    window.onload = function() {
+        console.log("1. Page et SDK chargés");
+
+        // CONFIGURATION (Vérifie bien tes clés ici)
+const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
+        
+        let supabase;
+        let allTerms = [];
+
+        try {
+            // Initialisation à l'intérieur du onload pour être sûr
+            supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("2. Client Supabase initialisé");
+            loadDico();
+        } catch (e) {
+            console.error("Erreur init Supabase:", e);
+        }
+
+        async function loadDico() {
+            const container = document.getElementById('dico-container');
+            console.log("3. Tentative de récupération des données...");
+
+            try {
+                const { data, error } = await supabase
+                    .from('dico_randocool')
+                    .select('*') // On prend tout pour tester
+                    .order('titre', { ascending: true });
+
+                if (error) {
+                    console.error("Erreur API Supabase:", error);
+                    container.innerHTML = `<p style="color:red;">Erreur : ${error.message}</p>`;
+                    return;
+                }
+
+                console.log("4. Données reçues :", data);
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = "<p>Table vide ou accès refusé (vérifie les RLS sur Supabase).</p>";
+                    return;
+                }
+
+                allTerms = data;
+                displayTerms(allTerms);
+
+            } catch (err) {
+                console.error("Erreur fatale :", err);
+                container.innerHTML = `<p style="color:red;">Erreur de connexion Safari : ${err.message}</p>`;
+            }
+        }
+
+        function displayTerms(terms) {
+            const container = document.getElementById('dico-container');
+            container.innerHTML = '';
+
+            terms.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'dico-card';
+                card.innerHTML = `
+                    <img src="${item.image || 'https://via.placeholder.com/400x250'}" class="dico-image">
+                    <div class="dico-content">
+                        <h3 class="dico-title">${item.titre}</h3>
+                        <p class="dico-detail">${item.detail}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Recherche en temps réel
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = allTerms.filter(t => 
+                t.titre.toLowerCase().includes(val) || t.detail.toLowerCase().includes(val)
+            );
+            displayTerms(filtered);
+        });
+    };
+</script>
+</body>
+</html>
