@@ -10,7 +10,7 @@
         :root {
             --primary: #27ae60; --dark: #0f172a; --grey: #64748b;
             --light-bg: #f8fafc; --white: #ffffff; --border: #e2e8f0;
-            --hero-bg: #27ae60; /* Vert plus clair que primary, mais pas pâle */
+            --hero-bg: #27ae60; --red: #FF0000;
         }
 
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--white); color: var(--dark); margin: 0; padding-top: 80px; }
@@ -155,6 +155,31 @@
             .slide { grid-template-areas: "header" "photo" "summary"; grid-template-columns: 1fr; }
             .prev-arrow { left: 10px; } .next-arrow { right: 10px; }
         }
+		/* Style Unique Calendrier pour toutes les sections */
+.date-badge-calendar {
+    width: 55px;
+    background: white;
+    border-radius: 8px; /* Légèrement arrondi pour le style moderne */
+    overflow: hidden;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border: 1px solid var(--border);
+}
+
+.date-badge-calendar .month-part {
+    background: var(--red);
+    color: white;
+    font-size: 0.55rem;
+    padding: 3px 0;
+    font-weight: 800;
+}
+
+.date-badge-calendar .day-part {
+    font-size: 1.1rem;
+    padding: 5px 0;
+    font-weight: 800;
+    color: var(--dark);
+}
     </style>
 </head>
 <body>
@@ -315,10 +340,10 @@
                         <span class="pill">📈 ${r.denivele} M</span>
                         <span class="pill">👥 ${r.nombre_participants || 0} PERS.</span>
                     </div>
-                    <div class="date-badge-hero">
-                        <div class="m-bg" style="font-size:0.6rem; padding:4px 0;">${d.toLocaleDateString('fr-FR', {month:'short'}).toUpperCase()}</div>
-                        <div class="d-num" style="font-size:1.4rem; padding:8px 0; color:var(--dark); font-weight:800;">${d.getDate()}</div>
-                    </div>
+					<div class="date-badge-calendar" style="position: absolute; top: 20px; right: 20px; z-index: 5;">
+						<div class="month-part">${d.toLocaleDateString('fr-FR', {month:'short'}).toUpperCase()}</div>
+						<div class="day-part">${d.getDate()}</div>
+					</div>
                     <img src="${r.image_url}" alt="${r.titre}">
                 </div>
             </div>`;
@@ -333,10 +358,10 @@
             <div class="actu-card">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:15px;">
                     <h4 style="font-size:0.95rem; font-weight:800; margin:0; line-height:1.4;">${a.description}</h4>
-                    <div class="date-badge-inline">
-                        <div class="m-bg" style="font-size:0.5rem; padding:3px 0;">${d.toLocaleDateString('fr-FR', {month:'short'}).toUpperCase()}</div>
-                        <div class="d-num" style="font-size:0.9rem; padding:5px 0; font-weight:800; color:var(--dark);">${d.getDate()}</div>
-                    </div>
+			<div class="date-badge-calendar">
+				<div class="month-part">${d.toLocaleDateString('fr-FR', {month:'short'}).toUpperCase()}</div>
+				<div class="day-part">${d.getDate()}</div>
+			</div>
                 </div>
                 <div style="position:relative; height:180px; border-radius:20px; overflow:hidden;">
                     <img src="${a.photo_url}" style="width:100%; height:100%; object-fit:cover;">
