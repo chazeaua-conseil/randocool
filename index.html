@@ -30,32 +30,16 @@
         .nav-actions { display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
         .btn-add-main { background: var(--dark); color: white !important; padding: 10px 20px; border-radius: 12px; font-size: 0.8rem !important; font-weight: 700; text-decoration: none; }
 
-        /* SECTION HERO AVEC LARGEUR CONTENUE */
-        .hero-section { 
-            max-width: 1100px; 
-            margin: 30px auto; 
-            padding: 0 20px;
-            position: relative; 
-        }
-
+        /* SECTION HERO */
+        .hero-section { max-width: 1100px; margin: 30px auto; padding: 0 20px; position: relative; }
         .slider-wrapper {
-            position: relative;
-            height: 550px;
-            border-radius: 40px;
-            overflow: hidden;
-            background: #eee;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            position: relative; height: 550px; border-radius: 40px; overflow: hidden;
+            background: #eee; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
         }
-
         .slider-container { height: 100%; position: relative; }
-        
-        .slide {
-            position: absolute; inset: 0; opacity: 0; transition: opacity 0.8s ease-in-out;
-            background-size: cover; background-position: center;
-        }
+        .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.8s ease-in-out; background-size: cover; background-position: center; }
         .slide.active { opacity: 1; z-index: 1; }
 
-        /* TITRE ET DATE SUR L'IMAGE */
         .hero-title-top {
             position: absolute; top: 30px; left: 40px; color: white;
             font-size: 3rem; font-weight: 800; margin: 0; letter-spacing: -1.5px; z-index: 5;
@@ -70,38 +54,48 @@
         .m-bg { background: var(--primary); color: white; font-size: 0.6rem; font-weight: 800; padding: 4px 0; }
         .d-num { font-size: 1.2rem; font-weight: 800; padding: 5px 0; color: var(--dark); }
 
-        /* LA BANDE D'INFO EN BAS */
+        /* LA BANDE D'INFO (MODIFIÉE) */
         .hero-card {
-            position: absolute; 
-            bottom: 0; left: 0; right: 0; 
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(15px);
-            padding: 25px 40px; 
-            z-index: 6;
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            gap: 30px;
+            position: absolute; bottom: 0; left: 0; right: 0; 
+            background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(15px);
+            padding: 20px 40px; z-index: 6;
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 30px;
             border-top: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .hero-text-content { flex: 1; }
+        
+        /* GESTION DU TEXTE DÉPLIABLE */
         .hero-summary {
-            font-size: 0.9rem; color: var(--grey); line-height: 1.5; margin: 8px 0 0 0;
+            font-size: 0.9rem; color: var(--grey); line-height: 1.5; margin: 10px 0 0 0;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        /* Classe quand c'est déplié */
+        .hero-summary.expanded {
+            display: block; -webkit-line-clamp: unset; max-height: 200px; overflow-y: auto;
+        }
+
+        .btn-toggle-text {
+            background: none; border: none; color: var(--primary); font-family: inherit;
+            font-size: 0.7rem; font-weight: 800; cursor: pointer; padding: 0; margin-top: 5px;
+            text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px;
         }
 
         .pill-row { display: flex; gap: 10px; }
         .pill { background: white; color: var(--dark); padding: 5px 12px; border-radius: 15px; font-size: 0.7rem; font-weight: 800; border: 1px solid var(--border); }
 
+        .hero-actions { align-self: center; } /* Garde le bouton Album centré verticalement */
+
         .btn-album {
             background: var(--dark); color: white; padding: 14px 25px; border-radius: 14px; 
             text-decoration: none; font-weight: 800; font-size: 0.8rem; white-space: nowrap; 
-            transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: inline-block;
         }
         .btn-album:hover { transform: translateY(-2px); background: #000; }
 
-        /* BOUTONS DE NAVIGATION DU SLIDER */
+        /* NAVIGATION */
         .nav-btn {
             position: absolute; top: 50%; transform: translateY(-50%);
             width: 45px; height: 45px; border-radius: 50%; background: white;
@@ -110,14 +104,12 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: 0.3s;
         }
         .nav-btn:hover { background: var(--primary); color: white; }
-        .prev { left: -22px; }
-        .next { right: -22px; }
+        .prev { left: -22px; } .next { right: -22px; }
 
-        /* ACTUS SECTION */
+        /* ACTUS */
         .container { max-width: 1100px; margin: 60px auto; padding: 0 20px; }
         .section-header { margin-bottom: 30px; }
         .section-title { font-size: 2rem; font-weight: 800; letter-spacing: -1px; margin: 5px 0; }
-
         .actus-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
         .actu-card { background: var(--light-bg); border-radius: 30px; overflow: hidden; border: 1px solid var(--border); }
         .actu-img { width: 100%; height: 220px; object-fit: cover; }
@@ -126,8 +118,8 @@
         .actu-btn { color: var(--primary); text-decoration: none; font-weight: 800; font-size: 0.8rem; }
 
         @media (max-width: 768px) {
-            .hero-title-top { font-size: 2rem; left: 20px; top: 20px; }
-            .hero-card { flex-direction: column; align-items: flex-start; padding: 20px; gap: 15px; }
+            .hero-card { flex-direction: column; padding: 20px; }
+            .hero-actions { width: 100%; margin-top: 10px; }
             .btn-album { width: 100%; text-align: center; box-sizing: border-box; }
             .slider-wrapper { height: 500px; }
             .prev, .next { display: none; }
@@ -155,8 +147,7 @@
     <button class="nav-btn next" onclick="moveSlide(1)">→</button>
     
     <div class="slider-wrapper">
-        <div id="slider-root" class="slider-container">
-            </div>
+        <div id="slider-root" class="slider-container"></div>
     </div>
 </section>
 
@@ -165,8 +156,7 @@
         <span style="color:var(--primary); font-weight:800; font-size:0.75rem; text-transform:uppercase; letter-spacing:2px;">Communauté</span>
         <h2 class="section-title">Le fil d'actus</h2>
     </div>
-    <div id="actus-root" class="actus-grid">
-        </div>
+    <div id="actus-root" class="actus-grid"></div>
 </div>
 
 <script>
@@ -177,11 +167,9 @@
     let currentIdx = 0;
 
     async function init() {
-        // Charger les randos pour le Hero
         const { data: randos } = await supabaseClient.from('randos').select('*').order('date', { ascending: false }).limit(5);
         if (randos) renderHero(randos);
 
-        // Charger les actus
         const { data: actus } = await supabaseClient.from('actus').select('*').order('created_at', { ascending: false });
         if (actus) renderActus(actus);
     }
@@ -204,7 +192,10 @@
                             <span class="pill">📈 ${r.denivele} M</span>
                             <span class="pill">👥 ${r.nombre_participants || 0} PERS.</span>
                         </div>
-                        <p class="hero-summary">${r.description || 'Redécouvrez les sentiers avec nous.'}</p>
+                        <p class="hero-summary" id="summary-${i}">${r.description || 'Redécouvrez les sentiers avec nous.'}</p>
+                        <button class="btn-toggle-text" onclick="toggleText(${i})">
+                            <span id="btn-label-${i}">Lire la suite</span> ↓
+                        </button>
                     </div>
                     
                     <div class="hero-actions">
@@ -213,6 +204,20 @@
                 </div>
             </div>`;
         }).join('');
+    }
+
+    // FONCTION POUR DÉPLIER LE TEXTE
+    function toggleText(index) {
+        const summary = document.getElementById(`summary-${index}`);
+        const label = document.getElementById(`btn-label-${index}`);
+        
+        if (summary.classList.contains('expanded')) {
+            summary.classList.remove('expanded');
+            label.innerText = "Lire la suite";
+        } else {
+            summary.classList.add('expanded');
+            label.innerText = "Réduire";
+        }
     }
 
     function renderActus(items) {
@@ -230,6 +235,11 @@
     function moveSlide(dir) {
         const slides = document.querySelectorAll('.slide');
         if(!slides.length) return;
+        
+        // Refermer tous les textes dépliés avant de changer de slide pour garder le design propre
+        document.querySelectorAll('.hero-summary').forEach(s => s.classList.remove('expanded'));
+        document.querySelectorAll('.btn-toggle-text span').forEach(l => l.innerText = "Lire la suite");
+
         slides[currentIdx].classList.remove('active');
         currentIdx = (currentIdx + dir + slides.length) % slides.length;
         slides[currentIdx].classList.add('active');
