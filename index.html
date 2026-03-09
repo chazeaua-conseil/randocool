@@ -8,8 +8,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #27ae60; --dark: #0f172a; --grey: #64748b;
-            --light-bg: #f8fafc; --white: #ffffff; --border: #e2e8f0;
+            --primary: #27ae60; 
+            --primary-light: #f0fdf4; /* Vert subtil pour le bloc texte */
+            --dark: #0f172a; 
+            --grey: #475569;
+            --white: #ffffff; 
+            --border: #e2e8f0;
+            --bg-page: #f8fafc;
         }
 
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--white); color: var(--dark); margin: 0; padding-top: 80px; }
@@ -30,99 +35,114 @@
         .nav-actions { display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
         .btn-add-main { background: var(--dark); color: white !important; padding: 10px 20px; border-radius: 12px; font-size: 0.8rem !important; font-weight: 700; text-decoration: none; }
 
-        /* SECTION HERO */
-        .hero-section { max-width: 1100px; margin: 30px auto; padding: 0 20px; position: relative; }
-        .slider-wrapper {
-            position: relative; height: 550px; border-radius: 40px; overflow: hidden;
-            background: #eee; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-        }
-        .slider-container { height: 100%; position: relative; }
-        .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.8s ease-in-out; background-size: cover; background-position: center; }
-        .slide.active { opacity: 1; z-index: 1; }
+        /* SECTION HERO (CARROUSEL) */
+        .hero-section { background-color: var(--bg-page); padding: 60px 0; }
+        .hero-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; position: relative; }
 
-        .hero-title-top {
-            position: absolute; top: 30px; left: 40px; color: white;
-            font-size: 3rem; font-weight: 800; margin: 0; letter-spacing: -1.5px; z-index: 5;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        .slider-wrapper { 
+            position: relative; 
+            border-radius: 40px; 
+            overflow: hidden; 
+            background: var(--white); 
+            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.1);
         }
 
-        .date-badge-mini {
-            position: absolute; top: 30px; right: 40px; background: white;
-            border-radius: 15px; width: 60px; text-align: center; overflow: hidden; z-index: 5;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        /* GRILLE STRICTE : TEXTE / IMAGE */
+        .slide { 
+            display: none; 
+            grid-template-columns: 400px 1fr; /* Largeur fixe pour le texte, le reste pour l'image */
+            background: var(--white);
+            align-items: stretch;
         }
-        .m-bg { background: var(--primary); color: white; font-size: 0.6rem; font-weight: 800; padding: 4px 0; }
-        .d-num { font-size: 1.2rem; font-weight: 800; padding: 5px 0; color: var(--dark); }
+        .slide.active { display: grid; }
 
-        /* LA BANDE D'INFO (MODIFIÉE) */
-        .hero-card {
-            position: absolute; bottom: 0; left: 0; right: 0; 
-            background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(15px);
-            padding: 20px 40px; z-index: 6;
-            display: flex; align-items: flex-start; justify-content: space-between; gap: 30px;
-            border-top: 1px solid rgba(0,0,0,0.05);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        /* COLONNE GAUCHE (TEXTE) */
+        .hero-info-side {
+            padding: 40px;
+            background: var(--primary-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid rgba(0,0,0,0.05);
         }
 
-        .hero-text-content { flex: 1; }
-        
-        /* GESTION DU TEXTE DÉPLIABLE */
+        .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .pill { 
+            background: var(--white); color: var(--primary); 
+            padding: 6px 12px; border-radius: 20px; 
+            font-size: 0.7rem; font-weight: 800; border: 1px solid rgba(39, 174, 96, 0.1);
+        }
+
+        .hero-title { font-size: 2rem; font-weight: 800; line-height: 1.2; margin: 0 0 15px 0; color: var(--dark); letter-spacing: -1px; }
+
         .hero-summary {
-            font-size: 0.9rem; color: var(--grey); line-height: 1.5; margin: 10px 0 0 0;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-            transition: all 0.3s ease;
+            font-size: 1rem; 
+            color: var(--grey);
+            line-height: 1.6;
+            margin: 0 0 25px 0;
         }
-        /* Classe quand c'est déplié */
-        .hero-summary.expanded {
-            display: block; -webkit-line-clamp: unset; max-height: 200px; overflow-y: auto;
-        }
-
-        .btn-toggle-text {
-            background: none; border: none; color: var(--primary); font-family: inherit;
-            font-size: 0.7rem; font-weight: 800; cursor: pointer; padding: 0; margin-top: 5px;
-            text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px;
-        }
-
-        .pill-row { display: flex; gap: 10px; }
-        .pill { background: white; color: var(--dark); padding: 5px 12px; border-radius: 15px; font-size: 0.7rem; font-weight: 800; border: 1px solid var(--border); }
-
-        .hero-actions { align-self: center; } /* Garde le bouton Album centré verticalement */
 
         .btn-album {
-            background: var(--dark); color: white; padding: 14px 25px; border-radius: 14px; 
-            text-decoration: none; font-weight: 800; font-size: 0.8rem; white-space: nowrap; 
-            transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: inline-block;
+            align-self: flex-start; background: var(--dark); color: white; 
+            padding: 14px 25px; border-radius: 14px; text-decoration: none; 
+            font-weight: 800; font-size: 0.8rem; transition: 0.3s;
         }
-        .btn-album:hover { transform: translateY(-2px); background: #000; }
+        .btn-album:hover { transform: translateY(-3px); background: #000; }
 
-        /* NAVIGATION */
+        /* COLONNE DROITE (IMAGE 4/3) */
+        .hero-image-side {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3; /* FORCE LE RATIO 4/3 */
+            overflow: hidden;
+            background: #eee;
+        }
+
+        .hero-image-side img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* L'image remplit l'espace sans se déformer */
+        }
+
+        /* BADGE DATE SUR L'IMAGE */
+        .date-badge {
+            position: absolute; top: 20px; right: 20px; background: white;
+            border-radius: 15px; width: 55px; text-align: center; overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            z-index: 5;
+        }
+        .m-bg { background: var(--primary); color: white; font-size: 0.6rem; font-weight: 800; padding: 4px 0; text-transform: uppercase; }
+        .d-num { font-size: 1.2rem; font-weight: 800; padding: 5px 0; color: var(--dark); }
+
+        /* NAVIGATION SLIDER */
         .nav-btn {
             position: absolute; top: 50%; transform: translateY(-50%);
-            width: 45px; height: 45px; border-radius: 50%; background: white;
-            border: none; color: var(--dark); cursor: pointer; z-index: 10;
-            display: flex; align-items: center; justify-content: center; font-size: 1rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: 0.3s;
+            width: 50px; height: 50px; border-radius: 50%; background: var(--dark);
+            border: none; color: white; cursor: pointer; z-index: 100;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.3s;
         }
-        .nav-btn:hover { background: var(--primary); color: white; }
-        .prev { left: -22px; } .next { right: -22px; }
+        .nav-btn:hover { background: var(--primary); transform: translateY(-50%) scale(1.1); }
+        .prev { left: -25px; } .next { right: -25px; }
 
-        /* ACTUS */
-        .container { max-width: 1100px; margin: 60px auto; padding: 0 20px; }
-        .section-header { margin-bottom: 30px; }
-        .section-title { font-size: 2rem; font-weight: 800; letter-spacing: -1px; margin: 5px 0; }
-        .actus-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
-        .actu-card { background: var(--light-bg); border-radius: 30px; overflow: hidden; border: 1px solid var(--border); }
+        /* SECTION ACTUS (FOND BLANC) */
+        .news-section { padding: 80px 0; background: var(--white); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .section-title { font-size: 2.2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 40px; }
+
+        .actus-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
+        .actu-card { 
+            background: var(--bg-page); border-radius: 30px; overflow: hidden; border: 1px solid var(--border); 
+            position: relative; transition: 0.3s;
+        }
         .actu-img { width: 100%; height: 220px; object-fit: cover; }
         .actu-body { padding: 25px; }
-        .actu-desc { font-size: 0.9rem; color: var(--grey); line-height: 1.6; margin-bottom: 15px; }
-        .actu-btn { color: var(--primary); text-decoration: none; font-weight: 800; font-size: 0.8rem; }
+        .actu-desc { font-size: 0.95rem; color: var(--grey); line-height: 1.6; margin-bottom: 15px; }
 
-        @media (max-width: 768px) {
-            .hero-card { flex-direction: column; padding: 20px; }
-            .hero-actions { width: 100%; margin-top: 10px; }
-            .btn-album { width: 100%; text-align: center; box-sizing: border-box; }
-            .slider-wrapper { height: 500px; }
-            .prev, .next { display: none; }
+        @media (max-width: 992px) {
+            .slide { grid-template-columns: 1fr; }
+            .hero-info-side { order: 2; padding: 30px; }
+            .hero-image-side { order: 1; }
+            .nav-btn { display: none; }
         }
     </style>
 </head>
@@ -137,32 +157,37 @@
         </div>
         <a href="index.html" class="logo">Randocool</a>
         <div class="nav-actions">
-            <a href="#" class="btn-add-main" onclick="openActuModal()">+ ACTUALITÉ</a>
+            <a href="#" class="btn-add-main">+ ACTUALITÉ</a>
         </div>
     </div>
 </header>
 
 <section class="hero-section">
-    <button class="nav-btn prev" onclick="moveSlide(-1)">←</button>
-    <button class="nav-btn next" onclick="moveSlide(1)">→</button>
-    
-    <div class="slider-wrapper">
-        <div id="slider-root" class="slider-container"></div>
+    <div class="hero-container">
+        <button class="nav-btn prev" onclick="moveSlide(-1)">←</button>
+        <button class="nav-btn next" onclick="moveSlide(1)">→</button>
+        
+        <div class="slider-wrapper">
+            <div id="slider-root" class="slider-container"></div>
+        </div>
     </div>
 </section>
 
-<div class="container">
-    <div class="section-header">
-        <span style="color:var(--primary); font-weight:800; font-size:0.75rem; text-transform:uppercase; letter-spacing:2px;">Communauté</span>
-        <h2 class="section-title">Le fil d'actus</h2>
+<section class="news-section">
+    <div class="container">
+        <h2 class="section-title">Fil d'actualité</h2>
+        <div id="actus-root" class="actus-grid"></div>
     </div>
-    <div id="actus-root" class="actus-grid"></div>
-</div>
+</section>
 
 <script>
     const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    // Initialisation sans stockage pour éviter les blocages de tracking
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { persistSession: false }
+    });
 
     let currentIdx = 0;
 
@@ -178,68 +203,50 @@
         document.getElementById('slider-root').innerHTML = items.map((r, i) => {
             const d = new Date(r.date);
             return `
-            <div class="slide ${i === 0 ? 'active' : ''}" style="background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.1)), url('${r.image_url}')">
-                <h2 class="hero-title-top">${r.titre}</h2>
-                <div class="date-badge-mini">
-                    <div class="m-bg">${d.toLocaleDateString('fr-FR', {month:'short'}).toUpperCase()}</div>
-                    <div class="d-num">${d.getDate()}</div>
+            <div class="slide ${i === 0 ? 'active' : ''}">
+                <div class="hero-info-side">
+                    <div class="pill-row">
+                        <span class="pill">📏 ${r.distance} KM</span>
+                        <span class="pill">📈 ${r.denivele} M</span>
+                        <span class="pill">👥 ${r.nombre_participants || 0} PERS.</span>
+                    </div>
+                    <h2 class="hero-title">${r.titre}</h2>
+                    <p class="hero-summary">${r.description || 'Une sortie Randocool inoubliable.'}</p>
+                    <a href="${r.album_url}" target="_blank" class="btn-album">VOIR L'ALBUM 📸</a>
                 </div>
                 
-                <div class="hero-card">
-                    <div class="hero-text-content">
-                        <div class="pill-row">
-                            <span class="pill">📏 ${r.distance} KM</span>
-                            <span class="pill">📈 ${r.denivele} M</span>
-                            <span class="pill">👥 ${r.nombre_participants || 0} PERS.</span>
-                        </div>
-                        <p class="hero-summary" id="summary-${i}">${r.description || 'Redécouvrez les sentiers avec nous.'}</p>
-                        <button class="btn-toggle-text" onclick="toggleText(${i})">
-                            <span id="btn-label-${i}">Lire la suite</span> ↓
-                        </button>
-                    </div>
-                    
-                    <div class="hero-actions">
-                        <a href="${r.album_url}" target="_blank" class="btn-album">ALBUM PHOTOS 📸</a>
+                <div class="hero-image-side">
+                    <img src="${r.image_url}" alt="${r.titre}">
+                    <div class="date-badge">
+                        <div class="m-bg">${d.toLocaleDateString('fr-FR', {month:'short'})}</div>
+                        <div class="d-num">${d.getDate()}</div>
                     </div>
                 </div>
             </div>`;
         }).join('');
     }
 
-    // FONCTION POUR DÉPLIER LE TEXTE
-    function toggleText(index) {
-        const summary = document.getElementById(`summary-${index}`);
-        const label = document.getElementById(`btn-label-${index}`);
-        
-        if (summary.classList.contains('expanded')) {
-            summary.classList.remove('expanded');
-            label.innerText = "Lire la suite";
-        } else {
-            summary.classList.add('expanded');
-            label.innerText = "Réduire";
-        }
-    }
-
     function renderActus(items) {
-        document.getElementById('actus-root').innerHTML = items.map(a => `
+        document.getElementById('actus-root').innerHTML = items.map(a => {
+            const d = new Date(a.created_at);
+            return `
             <div class="actu-card">
+                <div class="date-badge" style="top:15px; right:15px; width:45px; border-radius:12px;">
+                    <div class="m-bg" style="font-size:0.5rem; padding:3px 0;">${d.toLocaleDateString('fr-FR', {month:'short'})}</div>
+                    <div class="d-num" style="font-size:1rem; padding:4px 0;">${d.getDate()}</div>
+                </div>
                 ${a.photo_url ? `<img src="${a.photo_url}" class="actu-img">` : ''}
                 <div class="actu-body">
                     <p class="actu-desc">${a.description}</p>
-                    ${a.lien ? `<a href="${a.lien}" target="_blank" class="actu-btn">LIRE LA SUITE →</a>` : ''}
+                    ${a.lien ? `<a href="${a.lien}" target="_blank" style="color:var(--primary); font-weight:800; text-decoration:none; font-size:0.8rem;">LIEN SOURCE →</a>` : ''}
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
     }
 
     function moveSlide(dir) {
         const slides = document.querySelectorAll('.slide');
         if(!slides.length) return;
-        
-        // Refermer tous les textes dépliés avant de changer de slide pour garder le design propre
-        document.querySelectorAll('.hero-summary').forEach(s => s.classList.remove('expanded'));
-        document.querySelectorAll('.btn-toggle-text span').forEach(l => l.innerText = "Lire la suite");
-
         slides[currentIdx].classList.remove('active');
         currentIdx = (currentIdx + dir + slides.length) % slides.length;
         slides[currentIdx].classList.add('active');
