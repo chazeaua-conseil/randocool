@@ -5,16 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Randocool | L'aventure au sommet</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #27ae60; 
-            --dark: #0f172a; 
-            --slate: #1e293b;
-            --grey: #64748b;
-            --white: #ffffff; 
-            --bg-light: #f1f5f9;
-            --border: #e2e8f0;
+            --primary: #27ae60; --dark: #0f172a; --grey: #64748b;
+            --light-bg: #f8fafc; --white: #ffffff; --border: #e2e8f0;
+            --hero-bg: #27ae60; /* Vert plus clair que primary, mais pas pâle */
         }
 
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--white); color: var(--dark); margin: 0; padding-top: 80px; }
@@ -22,111 +18,142 @@
         /* HEADER */
         header {
             position: fixed; top: 0; left: 0; right: 0; height: 80px;
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
-            z-index: 3000; border-bottom: 1px solid rgba(0,0,0,0.05);
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+            z-index: 2000; border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 0 40px;
         }
         .nav-container {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 40px; height: 80px; max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+            width: 100%; height: 100%; box-sizing: border-box;
         }
-        .nav-links { display: flex; gap: 30px; }
-        .nav-links a { text-decoration: none; color: var(--dark); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px; text-transform: uppercase; }
-        .logo { font-weight: 800; font-size: 1.6rem; letter-spacing: -1.5px; text-decoration: none; color: var(--dark); position: absolute; left: 50%; transform: translateX(-50%); }
-        .btn-add-rando { background: var(--dark); color: white !important; padding: 12px 24px; border-radius: 14px; font-size: 0.75rem !important; font-weight: 700; text-decoration: none; transition: 0.3s; }
-        .btn-add-rando:hover { background: var(--primary); }
+        .nav-links { display: flex; gap: 25px; }
+        .nav-links a { text-decoration: none; color: var(--dark); font-weight: 700; font-size: 0.85rem; }
+        .logo { font-weight: 800; font-size: 1.8rem; letter-spacing: -1.5px; text-decoration: none; color: var(--dark); }
+        .nav-actions { display: flex; justify-content: flex-end; align-items: center; gap: 15px; }
+        .search-input { padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border); background: #f1f5f9; width: 180px; font-size: 0.8rem; font-family: inherit; }
 
-        /* SECTION HERO */
-        .hero-section { background-color: var(--bg-light); padding: 40px 0; }
-        .hero-container { max-width: 1300px; margin: 0 auto; padding: 0 20px; position: relative; }
-
-        .slider-wrapper { 
-            border-radius: 40px; 
-            overflow: hidden; 
-            background: var(--white); 
-            box-shadow: 0 40px 100px -20px rgba(0,0,0,0.15);
-            height: 650px;
+        /* AUTOCOMPLETE STYLES */
+        .search-container { position: relative; }
+        .search-results {
+            position: absolute; top: 110%; left: 0; right: 0; 
+            background: white; border-radius: 12px; border: 1px solid var(--border);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; 
+            max-height: 300px; overflow-y: auto; z-index: 3000;
         }
+        .search-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: 0.2s; }
+        .search-item:last-child { border-bottom: none; }
+        .search-item:hover { background: #f8fafc; }
+        .search-item-title { display: block; font-weight: 700; font-size: 0.85rem; color: var(--dark); }
+        .search-item-date { font-size: 0.7rem; color: var(--grey); }
 
-        .slide { display: none; flex-direction: column; height: 100%; }
-        .slide.active { display: flex; }
-
-        .hero-header-block { padding: 25px 50px; background: var(--primary); color: var(--white); flex-shrink: 0; }
-        .hero-title { font-size: 2.2rem; font-weight: 800; margin: 0; letter-spacing: -1px; }
-
-        .hero-main-content {
-            display: grid; grid-template-columns: 380px 1fr;
-            background: var(--white); flex-grow: 1; height: calc(100% - 90px);
+        /* HERO SLIDER REVISITÉ - BORDS DROITS ET COLLÉS */
+        .hero-section { background-color: var(--hero-bg); padding: 50px 0; }
+        .hero-slider { position: relative; max-width: 1300px; margin: 0 auto; min-height: 600px; }
+        
+        .slide { 
+            display: none; 
+            grid-template-areas: 
+                "header header"
+                "summary photo";
+            grid-template-columns: 1fr 1.33fr; 
+            gap: 0; /* Blocs collés les uns aux autres */
+            animation: fadeIn 0.5s ease-in-out;
         }
+        .slide.active { display: grid; }
 
-        /* BLOC RÉSUMÉ */
-        .hero-info-side { padding: 40px; border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; box-sizing: border-box; overflow: hidden; }
-        .scroll-container { overflow-y: auto; flex-grow: 1; padding-right: 15px; }
-        .scroll-container::-webkit-scrollbar { width: 4px; }
-        .scroll-container::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
-
-        .hero-summary { font-size: 0.9rem; color: var(--grey); line-height: 1.8; font-weight: 400; margin: 0; }
-
-        /* IMAGE ET BOUTON ALBUM (FORCE DISPLAY) */
-        .hero-image-side { position: relative; height: 100%; background: #000; }
-        .hero-image-side img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-        .btn-album-overlay {
-            position: absolute; 
-            bottom: 30px !important; 
-            right: 30px !important;
-            display: inline-flex !important;
+        /* Bloc Titre (Haut) */
+        .hero-header-block {
+            grid-area: header;
+            background: var(--primary);
+            padding: 25px 40px;
+            border-radius: 0; /* Bords droits */
+            display: flex;
+            justify-content: space-between; /* Titre à gauche, bouton à droite */
             align-items: center;
-            justify-content: center;
-            background: #ffffff !important; 
-            color: var(--dark) !important;
-            padding: 18px 32px !important; 
-            border-radius: 20px !important; 
-            text-decoration: none !important;
-            font-weight: 800 !important; 
-            font-size: 0.9rem !important; 
-            z-index: 9999 !important; /* Force le premier plan */
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important; 
-            transition: all 0.3s ease;
-            border: 2px solid var(--primary) !important;
+            color: white;
         }
-        .btn-album-overlay:hover { background: var(--primary) !important; color: white !important; transform: translateY(-5px); }
-
-        .badge-overlay-container { position: absolute; top: 30px; left: 30px; display: flex; gap: 10px; z-index: 500; }
-        .overlay-badge { background: rgba(255, 255, 255, 0.95); padding: 8px 15px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; color: var(--dark); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .overlay-badge span { color: var(--primary); }
-
-        /* CALENDRIER */
-        .date-badge {
-            position: absolute; top: 30px; right: 30px; background: white;
-            border-radius: 15px; width: 60px; text-align: center; overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 500;
+        .hero-header-block h2 { margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: -1px; }
+        .btn-album-top { 
+            background: white; color: var(--primary); padding: 12px 25px; 
+            border-radius: 0; /* Bords droits */
+            text-decoration: none; font-weight: 800; font-size: 0.9rem;
+            transition: 0.3s;
         }
-        .m-bg { background: var(--primary); color: white; font-size: 0.65rem; font-weight: 800; padding: 5px 0; text-transform: uppercase; }
-        .d-num { font-size: 1.3rem; font-weight: 800; padding: 6px 0; color: var(--dark); }
+        .btn-album-top:hover { background: var(--dark); color: white; }
 
-        /* NAVIGATION */
-        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 55px; height: 55px; border-radius: 50%; background: var(--white); border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1000; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-        .nav-btn:hover { background: var(--primary); color: white; }
-        .prev { left: -25px; } .next { right: -25px; }
+        /* Bloc Résumé (Gauche) */
+        .hero-summary-block {
+            grid-area: summary;
+            background: white;
+            padding: 40px;
+            border-radius: 0; /* Bords droits */
+            max-height: 480px; 
+            overflow-y: auto;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--grey);
+        }
 
-        /* ACTUALITÉS */
-        .news-section { padding: 60px 0; background: var(--white); }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        .actus-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; }
-        .actu-card { background: var(--bg-light); border-radius: 30px; overflow: hidden; border: 1px solid var(--border); position: relative; }
-        .actu-img-wrapper { position: relative; width: 100%; height: 220px; }
-        .actu-img { width: 100%; height: 100%; object-fit: cover; }
-        .actu-card .date-badge { position: absolute; top: 15px; right: 15px; width: 50px; border-radius: 12px; }
-        .actu-card .m-bg { font-size: 0.55rem; padding: 4px 0; }
-        .actu-card .d-num { font-size: 1.1rem; padding: 5px 0; }
-        .actu-body { padding: 25px; }
+        /* Bloc Photo (Droite) */
+        .hero-photo-block {
+            grid-area: photo;
+            position: relative;
+            aspect-ratio: 4 / 3;
+            border-radius: 0; /* Bords droits */
+            overflow: hidden;
+            background: #222;
+        }
+        .hero-photo-block img { width: 100%; height: 100%; object-fit: cover; }
 
-        @media (max-width: 1100px) {
-            .slider-wrapper { height: auto; }
-            .hero-main-content { grid-template-columns: 1fr; }
-            .hero-info-side { height: 250px; border-right: none; }
-            .hero-image-side { height: 400px; }
-            .logo { position: static; transform: none; }
+        /* Badges sur photo */
+        .photo-badges { position: absolute; top: 20px; left: 20px; display: flex; gap: 10px; z-index: 5; }
+        .date-badge-hero { 
+            position: absolute; top: 20px; right: 20px; 
+            background: white; border-radius: 0; /* Bords droits */
+            width: 65px; 
+            text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 5; overflow: hidden;
+        }
+
+        .container { max-width: 1300px; margin: 0 auto; padding: 0 30px; }
+        .grid-marches { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 35px; }
+        .card { background: white; border-radius: 28px; overflow: hidden; border: 1px solid #f0f0f0; position: relative; transition: 0.3s; }
+        .card:hover { transform: translateY(-10px); }
+        .card-img { height: 220px; width: 100%; object-fit: cover; }
+        .pill { background: #f1f5f9; padding: 6px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+
+        /* Navigation slider */
+        .slider-arrow { 
+            position: absolute; top: 55%; transform: translateY(-50%); 
+            width: 50px; height: 50px; background: white; border: none; 
+            border-radius: 0; /* Bords droits */
+            cursor: pointer; z-index: 100; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s;
+        }
+        .slider-arrow:hover { background: var(--primary); color: white; }
+        .prev-arrow { left: -25px; } .next-arrow { right: -25px; }
+
+        .news-section { padding: 80px 0; background: var(--light-bg); }
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 40px; }
+        .actu-card { display: flex; flex-direction: column; gap: 12px; }
+        .date-badge-inline { background: white; border-radius: 10px; width: 45px; text-align: center; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 3000; }
+        .modal-content { background: white; padding: 40px; border-radius: 30px; width: 90%; max-width: 450px; }
+
+        .choice-btn {
+            display: block; width: 100%; padding: 18px; margin-bottom: 12px;
+            border: none; border-radius: 15px; font-weight: 800; font-size: 1rem;
+            cursor: pointer; text-align: center; text-decoration: none; transition: 0.2s;
+        }
+        .btn-album { background: var(--primary); color: white; }
+        .btn-update { background: var(--dark); color: white; }
+        .choice-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @media (max-width: 992px) {
+            .slide { grid-template-areas: "header" "photo" "summary"; grid-template-columns: 1fr; }
+            .prev-arrow { left: 10px; } .next-arrow { right: 10px; }
         }
     </style>
 </head>
@@ -142,90 +169,203 @@
             <a href="genese.html">GENÈSE</a>
         </div>
         <a href="index.html" class="logo">Randocool</a>
-        <a href="#" class="btn-add-rando">+ RANDO</a>
+        <div class="nav-actions">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Rechercher..." autocomplete="off">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+            <a href="admin.html" style="background: var(--dark); color: white; padding: 12px 20px; border-radius: 12px; text-decoration: none; font-size: 0.8rem; font-weight: 700;">+ AJOUTER</a>
+        </div>
     </div>
 </header>
 
 <section class="hero-section">
-    <div class="hero-container">
-        <button class="nav-btn prev" onclick="moveSlide(-1)">←</button>
-        <button class="nav-btn next" onclick="moveSlide(1)">→</button>
-        <div class="slider-wrapper">
-            <div id="slider-root"></div>
-        </div>
+    <div class="hero-slider">
+        <button class="slider-arrow prev-arrow" onclick="moveSlide(-1)">←</button>
+        <button class="slider-arrow next-arrow" onclick="moveSlide(1)">→</button>
+        <div id="slider-root"></div>
     </div>
 </section>
 
 <section class="news-section">
     <div class="container">
-        <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 40px; letter-spacing: -1px;">Fil d'actualité</h2>
-        <div id="actus-root" class="actus-grid"></div>
+        <h2 style="font-size: 1.8rem; font-weight: 800; margin:0;">Le Journal</h2>
+        <div class="news-grid" id="news-root"></div>
     </div>
 </section>
+
+<section style="padding: 80px 0;">
+    <div class="container">
+        <h2 style="font-size: 1.8rem; margin-bottom: 40px; font-weight: 800;">Aventures récentes</h2>
+        <div class="grid-marches" id="grid-root"></div>
+    </div>
+</section>
+
+<div id="actuModal" class="modal-overlay">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+            <h3 style="margin:0;">Nouvelle Actualité</h3>
+            <button onclick="closeActuModal()" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">&times;</button>
+        </div>
+        <form id="actuForm">
+            <input type="text" id="actuDesc" placeholder="Description courte" required style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-bottom:15px; font-family:inherit;">
+            <input type="url" id="actuPhoto" placeholder="URL de l'image" required style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-bottom:15px; font-family:inherit;">
+            <input type="url" id="actuLien" placeholder="Lien album (Optionnel)" style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-bottom:20px; font-family:inherit;">
+            <button type="submit" style="width:100%; background:var(--primary); color:white; border:none; padding:16px; border-radius:15px; font-weight:800; cursor:pointer;">PUBLIER</button>
+        </form>
+    </div>
+</div>
+
+<div id="choiceModal" class="modal-overlay">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+            <h3 id="choiceTitle" style="margin:0;">Que souhaitez-vous faire ?</h3>
+            <button onclick="closeChoiceModal()" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">&times;</button>
+        </div>
+        <a id="choiceAlbumBtn" href="#" target="_blank" class="choice-btn btn-album">VOIR L'ALBUM 📸</a>
+        <a id="choiceUpdateBtn" href="#" class="choice-btn btn-update">METTRE À JOUR LA RANDO ✏️</a>
+    </div>
+</div>
 
 <script>
     const SUPABASE_URL = 'https://mdpzwevznroqkpnobbag.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcHp3ZXZ6bnJvcWtwbm9iYmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3OTM1MjEsImV4cCI6MjA4NDM2OTUyMX0.ISXEl1Lf-jKMW1BUKnu02wcjs1veZ9Os9kmJcJCmwG4';
-    
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let currentIdx = 0;
+    let allRandos = [];
 
     async function init() {
-        const { data: randos } = await supabaseClient.from('randos').select('*').order('date', { ascending: false }).limit(5);
-        if (randos) renderHero(randos);
-
-        const { data: actus } = await supabaseClient.from('actus').select('*').order('created_at', { ascending: false });
-        if (actus) renderActus(actus);
+        const { data: randos } = await supabaseClient.from('randos').select('*').order('date', { ascending: false });
+        const { data: actus } = await supabaseClient.from('actus').select('*').order('date', { ascending: false }).limit(4);
+        if (randos) {
+            allRandos = randos;
+            renderHero(randos.slice(0, 5));
+            renderGrid(randos.slice(5, 11));
+        }
+        renderActus(actus || []);
+        setupSearch();
     }
+
+    function setupSearch() {
+        const input = document.getElementById('searchInput');
+        const results = document.getElementById('searchResults');
+
+        input.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase().trim();
+            if (val.length < 2) {
+                results.style.display = 'none';
+                return;
+            }
+
+            const filtered = allRandos.filter(r => r.titre.toLowerCase().includes(val)).slice(0, 5);
+            
+            if (filtered.length > 0) {
+                results.innerHTML = filtered.map(r => {
+                    const d = new Date(r.date);
+                    return `
+                    <div class="search-item" onclick="openChoiceModal('${r.id}')">
+                        <span class="search-item-title">${r.titre}</span>
+                        <span class="search-item-date">${d.toLocaleDateString('fr-FR')}</span>
+                    </div>`;
+                }).join('');
+                results.style.display = 'block';
+            } else {
+                results.innerHTML = '<div style="padding:15px; font-size:0.8rem; color:var(--grey);">Aucune rando trouvée</div>';
+                results.style.display = 'block';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target) && !results.contains(e.target)) {
+                results.style.display = 'none';
+            }
+        });
+    }
+
+    function openChoiceModal(id) {
+        const rando = allRandos.find(r => r.id == id);
+        if (!rando) return;
+        document.getElementById('choiceTitle').innerText = rando.titre;
+        document.getElementById('choiceAlbumBtn').href = rando.album_url || "#";
+        document.getElementById('choiceUpdateBtn').href = `modifier.html?id=${rando.id}`;
+        document.getElementById('searchResults').style.display = 'none';
+        document.getElementById('choiceModal').style.display = 'flex';
+    }
+
+    function closeChoiceModal() { document.getElementById('choiceModal').style.display = 'none'; }
 
     function renderHero(items) {
         document.getElementById('slider-root').innerHTML = items.map((r, i) => {
             const d = new Date(r.date);
             return `
             <div class="slide ${i === 0 ? 'active' : ''}">
-                <div class="hero-header-block"><h2 class="hero-title">${r.titre}</h2></div>
-                <div class="hero-main-content">
-                    <div class="hero-info-side">
-                        <div class="scroll-container">
-                            <p class="hero-summary">${r.description || 'Une magnifique randonnée Randocool.'}</p>
-                        </div>
-                    </div>
-                    <div class="hero-image-side">
-                        <img src="${r.image_url}" alt="${r.titre}">
-                        
-                        <div class="badge-overlay-container">
-                            <div class="overlay-badge"><span>📏</span> ${r.distance} KM</div>
-                            <div class="overlay-badge"><span>📈</span> ${r.denivele} M</div>
-                            <div class="overlay-badge"><span>👥</span> ${r.nombre_participants || 0}</div>
-                        </div>
+                <div class="hero-header-block">
+                    <h2>${r.titre}</h2>
+                    <a href="${r.album_url}" target="_blank" class="btn-album-top">VOIR L'ALBUM 📸</a>
+                </div>
 
-                        <div class="date-badge">
-                            <div class="m-bg">${d.toLocaleDateString('fr-FR', {month:'short'})}</div>
-                            <div class="d-num">${d.getDate()}</div>
-                        </div>
+                <div class="hero-summary-block">
+                    <p style="margin:0; white-space: pre-line;">${r.description || 'Aucun résumé disponible.'}</p>
+                </div>
 
-                        <a href="${r.album_url}" target="_blank" class="btn-album-overlay">VOIR L'ALBUM 📸</a>
+                <div class="hero-photo-block">
+                    <div class="photo-badges">
+                        <span class="pill">📏 ${r.distance} KM</span>
+                        <span class="pill">📈 ${r.denivele} M</span>
+                        <span class="pill">👥 ${r.nombre_participants || 0} PERS.</span>
                     </div>
+                    <div class="date-badge-hero">
+                        <div class="m-bg" style="font-size:0.6rem; padding:4px 0;">${d.toLocaleDateString('fr-FR', {month:'short'}).toUpperCase()}</div>
+                        <div class="d-num" style="font-size:1.4rem; padding:8px 0; color:var(--dark); font-weight:800;">${d.getDate()}</div>
+                    </div>
+                    <img src="${r.image_url}" alt="${r.titre}">
                 </div>
             </div>`;
         }).join('');
     }
 
     function renderActus(items) {
-        document.getElementById('actus-root').innerHTML = items.map(a => {
-            const d = new Date(a.created_at);
+        const root = document.getElementById('news-root');
+        root.innerHTML = items.map(a => {
+            const d = new Date(a.date);
             return `
             <div class="actu-card">
-                <div class="actu-img-wrapper">
-                    ${a.photo_url ? `<img src="${a.photo_url}" class="actu-img">` : '<div class="actu-img" style="background:#ddd"></div>'}
-                    <div class="date-badge">
-                        <div class="m-bg">${d.toLocaleDateString('fr-FR', {month:'short'})}</div>
-                        <div class="d-num">${d.getDate()}</div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:15px;">
+                    <h4 style="font-size:0.95rem; font-weight:800; margin:0; line-height:1.4;">${a.description}</h4>
+                    <div class="date-badge-inline">
+                        <div class="m-bg" style="font-size:0.5rem; padding:3px 0;">${d.toLocaleDateString('fr-FR', {month:'short'}).toUpperCase()}</div>
+                        <div class="d-num" style="font-size:0.9rem; padding:5px 0; font-weight:800; color:var(--dark);">${d.getDate()}</div>
                     </div>
                 </div>
-                <div class="actu-body">
-                    <p style="font-weight:400; font-size:0.88rem; color:var(--slate); margin:0;">${a.description}</p>
+                <div style="position:relative; height:180px; border-radius:20px; overflow:hidden;">
+                    <img src="${a.photo_url}" style="width:100%; height:100%; object-fit:cover;">
+                </div>
+                ${a.lien ? `<a href="${a.lien}" target="_blank" style="font-size:0.75rem; font-weight:800; color:var(--dark); text-decoration:none; border-bottom:2px solid var(--primary); align-self:flex-start;">VOIR L'ALBUM</a>` : ''}
+            </div>`;
+        }).join('') + `
+        <div class="actu-card" style="border:3px dashed #cbd5e1; border-radius:25px; height:240px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:white;" onclick="openActuModal()">
+            <span style="font-size:2.5rem; color:#94a3b8;">+</span>
+        </div>`;
+    }
+
+    function renderGrid(items) {
+        document.getElementById('grid-root').innerHTML = items.map(r => {
+            const d = new Date(r.date);
+            return `
+            <div class="card">
+                <img src="${r.image_url}" class="card-img">
+                <div class="date-badge-mini" style="position:absolute; top:15px; right:15px; width:55px; background:white; border-radius:12px; overflow:hidden; text-align:center;">
+                    <div class="m-bg" style="font-size:0.5rem; background:var(--primary); color:white; padding:3px 0;">${d.toLocaleDateString('fr-FR', {month:'short'}).toUpperCase()}</div>
+                    <div class="d-num" style="font-size:1rem; padding:5px 0; font-weight:800;">${d.getDate()}</div>
+                </div>
+                <div style="padding:25px;">
+                    <h3 style="margin:0 0 10px 0; font-size:1.15rem; font-weight:800;">${r.titre}</h3>
+                    <div style="display:flex; gap:8px; margin-bottom:15px;">
+                        <span class="pill">📏 ${r.distance}k</span><span class="pill">📈 ${r.denivele}m</span>
+                    </div>
+                    <p style="font-size:0.85rem; color:var(--grey); line-height:1.5; margin-bottom:20px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${r.description || ''}</p>
+                    <a href="${r.album_url}" target="_blank" style="font-weight:800; color:var(--primary); text-decoration:none; font-size:0.8rem;">VOIR L'ALBUM 📸</a>
                 </div>
             </div>`;
         }).join('');
@@ -238,6 +378,20 @@
         currentIdx = (currentIdx + dir + slides.length) % slides.length;
         slides[currentIdx].classList.add('active');
     }
+
+    function openActuModal() { document.getElementById('actuModal').style.display = 'flex'; }
+    function closeActuModal() { document.getElementById('actuModal').style.display = 'none'; document.getElementById('actuForm').reset(); }
+
+    document.getElementById('actuForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const { error } = await supabaseClient.from('actus').insert([{ 
+            description: document.getElementById('actuDesc').value, 
+            photo_url: document.getElementById('actuPhoto').value, 
+            lien: document.getElementById('actuLien').value,
+            date: new Date()
+        }]);
+        if (!error) { closeActuModal(); init(); }
+    });
 
     init();
 </script>
